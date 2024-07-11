@@ -1,15 +1,17 @@
 package com.example.concert_reservation.controller;
 
-import com.example.concert_reservation.dto.SeatRequestDto;
 import com.example.concert_reservation.dto.SeatReservationRequestDto;
 import com.example.concert_reservation.dto.SeatReservationResponseDto;
 import com.example.concert_reservation.dto.SeatResponseDto;
+import com.example.concert_reservation.entity.Reservation;
 import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.manager.TokenManager;
+import com.example.concert_reservation.service.SeatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import javax.security.sasl.AuthenticationException;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,81 +19,59 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class SeatController {
 
+
+    private final SeatService seatService;
+    private final TokenManager tokenManager;
+
+    public SeatController(SeatService seatService, TokenManager tokenManager) {
+        this.seatService = seatService;
+        this.tokenManager = tokenManager;
+    }
+
     // 예약가능 Seat 조회 API
-    @PostMapping("/seat")
+    @GetMapping("schedules/{scheduleId}/seats")
     public ResponseEntity<?> readSeat(
             @RequestHeader(value = "Authorization", required = false) UUID key,
-            @RequestBody SeatRequestDto dto
+            @PathVariable("scheduleId") Integer scheduleId
     ) {
-        if (key != null) {
-            if (dto.getScheduleId() != null) {
-                SeatResponseDto responseDto = new SeatResponseDto();
-                List<Seat> seats = new ArrayList<>();
-
-                Seat seat1 = new Seat();
-                seat1.setId(1);
-                seat1.setConcertId(1);
-                seat1.setScheduleId(dto.getScheduleId());
-                seat1.setSeatNo(1);
-                seat1.setState("RESERVED");
-                seat1.setGrade("S");
-                seat1.setPrice(50000l);
-                seats.add(seat1);
-
-                Seat seat2 = new Seat();
-                seat2.setId(2);
-                seat2.setConcertId(1);
-                seat2.setScheduleId(dto.getScheduleId());
-                seat2.setSeatNo(2);
-                seat2.setState("EMPTY");
-                seat2.setGrade("A");
-                seat2.setPrice(30000l);
-                seats.add(seat2);
-
-                responseDto.setSeats(seats);
-                return ResponseEntity.ok(responseDto);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("no schedule ID");
-
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("invalid token");
+        try {
+            tokenManager.validateToken(key);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
         }
+        if (scheduleId != null && scheduleId > 0) {
+            List<Seat> seats = seatService.getAvailableSeatList(scheduleId);
+            return ResponseEntity.ok(new SeatResponseDto(seats));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("no schedule ID");
+
     }
 
     //좌석 예약 API
-    @PostMapping("/seat/reservation")
+    @PostMapping("/seats/{seatId}/reservation")
     public ResponseEntity<?> reserveSeat(
             @RequestHeader(value = "Authorization", required = false) UUID key,
-            @RequestBody SeatReservationRequestDto dto
+            @PathVariable("seatId") Integer seatId,
+            @RequestBody SeatReservationRequestDto requestDto
     ) {
-        if (key != null) {
-            if (dto.getSeatId() != null) {
-                SeatReservationResponseDto responseDto = new SeatReservationResponseDto();
-                responseDto.setSuccess(true);
-
-                Seat seat = new Seat();
-                seat.setId(1);
-                seat.setConcertId(1);
-                seat.setScheduleId(1);
-                seat.setSeatNo(1);
-                seat.setState("RESERVED");
-                seat.setGrade("S");
-                seat.setPrice(50000l);
-
-                responseDto.setSeat(seat);
-
-
-                return ResponseEntity.ok(responseDto);
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("no seat ID");
-
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("invalid token");
+        try {
+            tokenManager.validateToken(key);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
         }
+        if (seatId != null && seatId > 0) {
+            Reservation reservation = new Reservation();
+            reservation.setUserId(requestDto.getUserId());
+            reservation.setSeatId(seatId);
+            reservation = seatService.reserveSeat(reservation);
+            SeatReservationResponseDto responseDto = new SeatReservationResponseDto(reservation);
+            return ResponseEntity.ok(responseDto);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("no seat ID");
+
+
     }
 
 }
