@@ -17,4 +17,6 @@ public interface TokenRepository {
 
     void expireToken(LocalDateTime localDateTime);
 
+    void updateStateToExpiredByUserId(Integer userId);
+
 }

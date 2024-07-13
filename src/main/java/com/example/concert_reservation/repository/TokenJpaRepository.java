@@ -25,4 +25,9 @@ public interface TokenJpaRepository extends JpaRepository<Token, Integer> {
     @Transactional
     @Query("UPDATE Token t SET t.state = 'EXPIRED' WHERE t.expiredTime < :localDateTime and t.state = 'ACTIVATE'")
     void updateStateExpired(LocalDateTime localDateTime);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Token t SET t.state = 'EXPIRED' WHERE t.user.id = :userId ")
+    void updateStateToExpiredByUserId(Integer userId);
 }

@@ -56,6 +56,8 @@ public class PaymentService {
         reservation.setState(Reservation.State.COMPLETED);
         reservationRepository.save(reservation);
 
+        tokenRepository.updateStateToExpiredByUserId(user.getId());
+
 
 
         return payment;

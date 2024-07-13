@@ -41,4 +41,8 @@ public class TokenRepositoryImpl implements TokenRepository{
         tokenJpaRepository.updateStateExpired(localDateTime);
     }
 
+    public void updateStateToExpiredByUserId(Integer userId) {
+        tokenJpaRepository.updateStateToExpiredByUserId(userId);
+    }
+
 }
