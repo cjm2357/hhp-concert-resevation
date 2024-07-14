@@ -40,23 +40,10 @@ public class Token {
     @Transient
     private Integer order;
 
-    private Integer calcOrder(Token lastExpiredToken, Token lastNotExpiredToken) {
-        int lastExpiredId = 0;
-        int lastNotExpiredId = 0;
-        if (lastExpiredToken != null) {
-            lastExpiredId = lastExpiredToken.getId();
-        }
-
-        if (lastNotExpiredToken != null) {
-            lastNotExpiredId = lastNotExpiredToken.getId();
-        }
-
-        int order = lastNotExpiredId - lastExpiredId;
-        return order;
-    }
 
     @Builder
-    public Token(User user, UUID key, LocalDateTime createdTime, LocalDateTime expiredTime, TokenState state) {
+    public Token(Integer id, User user, UUID key, LocalDateTime createdTime, LocalDateTime expiredTime, TokenState state) {
+        this.id = id;
         this.user = user;
         this.tokenKey = key;
         this.createdTime = createdTime;

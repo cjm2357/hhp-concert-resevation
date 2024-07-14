@@ -12,7 +12,6 @@ import lombok.Setter;
 @Setter
 public class Concert {
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

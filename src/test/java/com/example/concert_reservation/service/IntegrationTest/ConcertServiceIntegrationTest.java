@@ -1,8 +1,10 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Concert;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.ConcertFixture;
+import com.example.concert_reservation.service.ConcertService;
 import com.example.concert_reservation.service.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,11 +31,9 @@ public class ConcertServiceIntegrationTest {
     @Test
     void 콘서트조회_성공 () {
         //given
-        Concert concert1 = new Concert();
-        concert1.setName("A concert");
+        Concert concert1 = ConcertFixture.createConcert(null,"A concert");
+        Concert concert2 = ConcertFixture.createConcert(null,"B concert");
         concertService.saveConcert(concert1);
-        Concert concert2 = new Concert();
-        concert2.setName("B concert");
         concertService.saveConcert(concert2);
 
         //when

@@ -1,8 +1,10 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Point;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.service.UserPointService;
 import com.example.concert_reservation.service.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,14 +37,11 @@ public class UserPointServiceIntegrationTest {
     @Test
     void 포인트_충전_성공() {
         //given
-        Point point = new Point();
-        point.setUserId(1);
-        point.setAmount(10000l);
-        User user = new User();
-        user.setId(1);
+
+        User user = UserFixture.createUser(1, "유저1", 1, 10000l);
 
         //when
-        user = userPointService.chargePoint(user, point.getAmount());
+        user = userPointService.chargePoint(user, user.getPoint().getAmount());
 
         //then
         assertEquals(1, user.getId());
@@ -53,15 +52,11 @@ public class UserPointServiceIntegrationTest {
     @Test
     void 포인트_충전_실패() {
         //given
-        Point point = new Point();
-        point.setUserId(1);
-        point.setAmount(-10000l);
-        User user = new User();
-        user.setId(1);
+        User user = UserFixture.createUser(1, "유저1", 1, -10000l);
 
         //when
         Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            userPointService.chargePoint(user, point.getAmount());
+            userPointService.chargePoint(user, user.getPoint().getAmount());
         });
 
         //then
@@ -73,12 +68,8 @@ public class UserPointServiceIntegrationTest {
     @Test
     void 포인트_추가_충전() {
         //given
-        Point point = new Point();
-        point.setUserId(1);
-        point.setAmount(10000l);
-        User user = new User();
-        user.setId(1);
-        userPointService.chargePoint(user, point.getAmount());
+        User user = UserFixture.createUser(1, "유저1", 1, 10000l);
+        userPointService.chargePoint(user, user.getPoint().getAmount());
 
         //when
         user = userPointService.chargePoint(user,10000l);
@@ -91,12 +82,8 @@ public class UserPointServiceIntegrationTest {
     @Test
     void 포인트_조회_성공() {
         //given
-        Point point = new Point();
-        point.setUserId(1);
-        point.setAmount(10000l);
-        User user = new User();
-        user.setId(1);
-        userPointService.chargePoint(user, point.getAmount());
+        User user = UserFixture.createUser(1, "유저1", 1, 10000l);
+        userPointService.chargePoint(user, user.getPoint().getAmount());
 
         //when
         user = userPointService.getPoint(user);

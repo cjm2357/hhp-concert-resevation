@@ -1,4 +1,4 @@
-package com.example.concert_reservation.contorller;
+package com.example.concert_reservation.contorller.unitTest;
 
 import com.example.concert_reservation.controller.SeatController;
 import com.example.concert_reservation.dto.SeatReservationRequestDto;

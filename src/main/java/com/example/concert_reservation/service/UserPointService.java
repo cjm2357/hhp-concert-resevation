@@ -31,8 +31,10 @@ public class UserPointService {
     public User chargePoint(User user, Long amount) {
         if (amount < 0 ) throw new IllegalArgumentException("충전하려는 값이 음수입니다.");
         Point point = pointRepository.findByUserIdWithLock(user.getId());
+        System.out.println("point.getAmount() = " + point.getAmount());
         point.setAmount(point.getAmount() + amount);
         point = pointRepository.save(point);
+        System.out.println("point.getAmount() = " + point.getAmount());
         user.setPoint(point);
         user = userRepository.save(user);
         return user;

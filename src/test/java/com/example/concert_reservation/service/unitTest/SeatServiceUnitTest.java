@@ -1,7 +1,10 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.unitTest;
 
 import com.example.concert_reservation.entity.Reservation;
 import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.fixture.ReservationFixture;
+import com.example.concert_reservation.fixture.SeatFixture;
+import com.example.concert_reservation.service.SeatService;
 import com.example.concert_reservation.service.repository.ReservationRepository;
 import com.example.concert_reservation.service.repository.SeatRepository;
 import org.junit.jupiter.api.Test;
@@ -10,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,20 +40,8 @@ public class SeatServiceUnitTest {
         Integer scheduleId = 1;
 
         List<Seat> expectedSeats = new ArrayList<>();
-        Seat seat1 = new Seat();
-        seat1.setId(1);
-        seat1.setConcertId(1);
-        seat1.setScheduleId(scheduleId);
-        seat1.setSeatNo(1);
-        seat1.setState(Seat.State.EMPTY);
-
-        Seat seat2 = new Seat();
-        seat2.setId(2);
-        seat2.setConcertId(1);
-        seat2.setScheduleId(scheduleId);
-        seat2.setSeatNo(2);
-        seat2.setState(Seat.State.EMPTY);
-
+        Seat seat1 = SeatFixture.createSeat(1, 1, scheduleId, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, 1, scheduleId, 2, Seat.State.EMPTY, 1000l, "A");
         expectedSeats.add(seat1);
         expectedSeats.add(seat2);
 
@@ -88,22 +80,13 @@ public class SeatServiceUnitTest {
         requestReservation.setSeatId(seatId);
         requestReservation.setUserId(userId);
 
-        Seat expectedSeat = new Seat();
-        expectedSeat.setState(Seat.State.EMPTY);
-        expectedSeat.setId(seatId);
-        expectedSeat.setScheduleId(1);
-        expectedSeat.setPrice(1000l);
-        expectedSeat.setSeatNo(1);
-        expectedSeat.setConcertId(1);
+        Seat expectedSeat = SeatFixture.createSeat(seatId, 1, 1, 1, Seat.State.EMPTY, 1000l, "A");
 
-        Reservation expectedReservation = new Reservation();
-        expectedReservation.setId(1);
-        expectedReservation.setUserId(userId);
-        expectedReservation.setSeatNo(expectedSeat.getSeatNo());
-        expectedReservation.setSeatId(seatId);
-        expectedReservation.setState(Reservation.State.WAITING);
+        Reservation expectedReservation =
+                ReservationFixture.creasteReservation(1, userId,1, seatId, 1, 1, Reservation.State.WAITING, expectedSeat.getPrice(), expectedSeat.getGrade(), LocalDateTime.now());
 
-        when(reservationRepository.findBySeatIdWithLock(any())).thenReturn(null);
+
+//        when(reservationRepository.findBySeatIdWithLock(any())).thenReturn(null);
         when(seatRepository.findById(any())).thenReturn(expectedSeat);
         when(reservationRepository.save(any())).thenReturn(expectedReservation);
 
@@ -124,14 +107,13 @@ public class SeatServiceUnitTest {
         requestReservation.setSeatId(seatId);
         requestReservation.setUserId(userId);
 
-        Reservation reservation = new Reservation();
-        reservation.setId(1);
-        reservation.setUserId(userId);
-        reservation.setSeatNo(1);
-        reservation.setSeatId(seatId);
-        reservation.setState(Reservation.State.WAITING);
+        Reservation reservation =
+                ReservationFixture.creasteReservation(1, userId,1, seatId, 1, 1, Reservation.State.EXPIRED, 1000l, "A", LocalDateTime.now());
 
-        when(reservationRepository.findBySeatIdWithLock(any())).thenReturn(reservation);
+        List<Reservation> expectedList = new ArrayList<>();
+        expectedList.add(reservation);
+
+        when(reservationRepository.findReservedReservationBySeatId(any())).thenReturn(expectedList);
         //when
         Throwable exception = assertThrows(RuntimeException.class, () -> {
             seatService.reserveSeat(requestReservation);

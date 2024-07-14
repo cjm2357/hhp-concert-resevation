@@ -1,7 +1,9 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.unitTest;
 
 import com.example.concert_reservation.entity.Point;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.service.UserPointService;
 import com.example.concert_reservation.service.repository.PointRepository;
 import com.example.concert_reservation.service.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -30,32 +32,22 @@ public class UserPointServiceUnitTest {
     @Test
     void 포인트조회_성공() {
         //given
-        Integer userId = 1;
-        User user = new User();
-        user.setId(userId);
-        Point point = new Point();
-        point.setId(1);
-        point.setUserId(userId);
-        point.setAmount(1000l);
-        user.setPoint(point);
+        User user = UserFixture.createUser(1, "user1", 1, 1000l);
 
         when(userRepository.findById(any())).thenReturn(user);
-
 
         //when
         User responseUser = userPointService.getPoint(user);
 
         //then
-        assertEquals(userId, responseUser.getId());
+        assertEquals(user.getId(), responseUser.getId());
         assertEquals(1000l, responseUser.getPoint().getAmount());
     }
 
     @Test
     void 포인트조회_실패() {
         //given
-        Integer userId = 1;
-        User user = new User();
-        user.setId(userId);
+        User user = UserFixture.createUser(1, "user1", null, null);
 
         when(userRepository.findById(any())).thenReturn(null);
 
@@ -73,48 +65,33 @@ public class UserPointServiceUnitTest {
     @Test
     void 포인트충전_성공() {
         //given
-        Integer userId = 1;
-        User user = new User();
-        user.setId(userId);
-        Point point = new Point();
-        point.setId(1);
-        point.setUserId(userId);
-        point.setAmount(3000l);
-        user.setPoint(point);
+        User user = UserFixture.createUser(1, "user1", 1, 3000l);
+
+        when(pointRepository.findByUserIdWithLock(any())).thenReturn(user.getPoint());
 
         Long plusPoint = 5000l;
         Point chargePoint = new Point();
-        chargePoint.setId(1);
-        chargePoint.setAmount(8000l);
-        chargePoint.setUserId(userId);
-
-        when(pointRepository.findByUserIdWithLock(any())).thenReturn(point);
+        chargePoint.setAmount(user.getPoint().getAmount() + plusPoint);
         when(pointRepository.save(any())).thenReturn(chargePoint);
 
+        when(userRepository.save(any())).thenReturn(user);
 
         //when
         User responseUser = userPointService.chargePoint(user, plusPoint);
 
         //then
-        assertEquals(userId, responseUser.getId());
+        assertEquals(user.getId(), responseUser.getId());
         assertEquals(3000 + 5000, responseUser.getPoint().getAmount());
     }
 
     @Test
     void 포인트충전_실패() {
         //given
-        Integer userId = 1;
-        User user = new User();
-        user.setId(userId);
-        Point point = new Point();
-        point.setId(1);
-        point.setUserId(userId);
-        point.setAmount(-3000l);
-        user.setPoint(point);
+        User user = UserFixture.createUser(1, "user1", 1, -3000l);
 
         //when
         Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            userPointService.chargePoint(user, point.getAmount());
+            userPointService.chargePoint(user, user.getPoint().getAmount());
         });
 
         //then

@@ -1,6 +1,8 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.unitTest;
 
 import com.example.concert_reservation.entity.Concert;
+import com.example.concert_reservation.fixture.ConcertFixture;
+import com.example.concert_reservation.service.ConcertService;
 import com.example.concert_reservation.service.repository.ConcertRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,14 +29,9 @@ public class ConcertServiceUnitTest {
     void 콘서트리스트_조회_성공() {
         //given
         List<Concert> expectedConcertList = new ArrayList<>();
-        Concert concert1 = new Concert();
-        concert1.setId(1);
-        concert1.setName("아이유 콘서트");
+        Concert concert1 = ConcertFixture.createConcert(1, "아이유 콘서트");
+        Concert concert2 = ConcertFixture.createConcert(2, "박효신 콘서트");
         expectedConcertList.add(concert1);
-
-        Concert concert2 = new Concert();
-        concert2.setId(2);
-        concert2.setName("박효신 콘서트");
         expectedConcertList.add(concert2);
 
         when(concertRepository.findAll()).thenReturn(expectedConcertList);

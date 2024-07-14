@@ -1,10 +1,14 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Payment;
 import com.example.concert_reservation.entity.Point;
 import com.example.concert_reservation.entity.Reservation;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.PaymentFixture;
+import com.example.concert_reservation.fixture.ReservationFixture;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.service.PaymentService;
 import com.example.concert_reservation.service.repository.PointRepository;
 import com.example.concert_reservation.service.repository.ReservationRepository;
 import com.example.concert_reservation.service.repository.SeatRepository;
@@ -42,14 +46,8 @@ public class PaymentServiceIntegrationTest {
 
     @BeforeEach
     void init() {
-        User user = new User();
-        user.setId(1);
-        user.setName("유저1");
-        Point point = new Point();
-        point.setAmount(10000l);
-        point.setUserId(1);
-        point = pointRepository.save(point);
-        user.setPoint(point);
+        User user = UserFixture.createUser(1, "유저1", 1, 10000l);
+        pointRepository.save(user.getPoint());
         userRepository.save(user);
     }
 
@@ -58,22 +56,11 @@ public class PaymentServiceIntegrationTest {
         //given
         Integer userId = 1;
 
-        Reservation reservation = new Reservation();
-        reservation.setConcertId(1);
-        reservation.setScheduleId(1);
-        reservation.setSeatId(1);
-        reservation.setSeatNo(1);
-        reservation.setState(Reservation.State.WAITING);
-        reservation.setPrice(8000l);
-        reservation.setCreatedTime(LocalDateTime.now());
-        reservation.setExpiredTime(LocalDateTime.now().plusMinutes(Reservation.EXPIRE_TIME_FIVE_MIN));
-        reservation.setSeatGrade("A");
-        reservation.setUserId(userId);
+        Reservation reservation =
+                ReservationFixture.creasteReservation(null, userId, 1, 1, 1, 1, Reservation.State.WAITING, 8000l, "A", LocalDateTime.now());
         reservation = reservationRepository.save(reservation);
 
-        Payment payment = new Payment();
-        payment.setUserId(userId);
-        payment.setReservationId(reservation.getId());
+        Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
 
         //when
         payment = paymentService.pay(payment);
@@ -93,10 +80,7 @@ public class PaymentServiceIntegrationTest {
         //given
         Integer userId = 1;
 
-
-        Payment payment = new Payment();
-        payment.setUserId(userId);
-        payment.setReservationId(1);
+        Payment payment =  PaymentFixture.createPayment(null, userId, 1, LocalDateTime.now());
 
         //when
         Throwable exception = assertThrows(RuntimeException.class, () -> {
@@ -118,22 +102,11 @@ public class PaymentServiceIntegrationTest {
         //given
         Integer userId = 1;
 
-        Reservation reservation = new Reservation();
-        reservation.setConcertId(1);
-        reservation.setScheduleId(1);
-        reservation.setSeatId(1);
-        reservation.setSeatNo(1);
-        reservation.setState(Reservation.State.EXPIRED);
-        reservation.setPrice(8000l);
-        reservation.setCreatedTime(LocalDateTime.now().minusMinutes(10));
-        reservation.setExpiredTime(LocalDateTime.now().minusMinutes(5));
-        reservation.setSeatGrade("A");
-        reservation.setUserId(userId);
+        Reservation reservation =
+                ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.EXPIRED, 8000l, "A", LocalDateTime.now().minusMinutes(10));
         reservation = reservationRepository.save(reservation);
 
-        Payment payment = new Payment();
-        payment.setUserId(userId);
-        payment.setReservationId(reservation.getId());
+        Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
 
         //when
         Throwable exception = assertThrows(RuntimeException.class, () -> {
@@ -155,22 +128,11 @@ public class PaymentServiceIntegrationTest {
         //given
         Integer userId = 1;
 
-        Reservation reservation = new Reservation();
-        reservation.setConcertId(1);
-        reservation.setScheduleId(1);
-        reservation.setSeatId(1);
-        reservation.setSeatNo(1);
-        reservation.setState(Reservation.State.WAITING);
-        reservation.setPrice(12000l);
-        reservation.setCreatedTime(LocalDateTime.now());
-        reservation.setExpiredTime(LocalDateTime.now().plusMinutes(Reservation.EXPIRE_TIME_FIVE_MIN));
-        reservation.setSeatGrade("A");
-        reservation.setUserId(userId);
+        Reservation reservation = ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.WAITING, 12000l, "A", LocalDateTime.now());
+
         reservation = reservationRepository.save(reservation);
 
-        Payment payment = new Payment();
-        payment.setUserId(userId);
-        payment.setReservationId(reservation.getId());
+        Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
 
         //when
         Throwable exception = assertThrows(RuntimeException.class, () -> {

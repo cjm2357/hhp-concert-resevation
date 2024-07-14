@@ -1,9 +1,12 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Reservation;
 import com.example.concert_reservation.entity.Seat;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.ReservationFixture;
+import com.example.concert_reservation.fixture.SeatFixture;
+import com.example.concert_reservation.service.SeatService;
 import com.example.concert_reservation.service.repository.ReservationRepository;
 import com.example.concert_reservation.service.repository.SeatRepository;
 import com.example.concert_reservation.service.repository.UserRepository;
@@ -50,22 +53,13 @@ public class SeatServiceIntegrationTest {
         //given
         Integer scheduleId = 1;
 
-        Seat seat1 = new Seat();
-        seat1.setScheduleId(scheduleId);
-        seat1.setState(Seat.State.RESERVED);
-        seat1.setSeatNo(1);
+        Seat seat1 = SeatFixture.createSeat(null, 1, scheduleId, 1, Seat.State.RESERVED, 10000l, "A");
         seat1 = seatRepository.save(seat1);
 
-        Seat seat2 = new Seat();
-        seat2.setScheduleId(scheduleId);
-        seat2.setState(Seat.State.EMPTY);
-        seat2.setSeatNo(2);
+        Seat seat2 = SeatFixture.createSeat(null, 1, scheduleId, 2, Seat.State.EMPTY, 10000l, "A");
         seat2 = seatRepository.save(seat2);
 
-        Seat seat3 = new Seat();
-        seat3.setScheduleId(scheduleId);
-        seat3.setState(Seat.State.EMPTY);
-        seat3.setSeatNo(3);
+        Seat seat3 = SeatFixture.createSeat(null, 1, scheduleId, 3, Seat.State.EMPTY, 10000l, "A");
         seat3 = seatRepository.save(seat3);
 
 
@@ -101,15 +95,7 @@ public class SeatServiceIntegrationTest {
         Integer userId = 1;
         Integer concertId = 1;
 
-
-        Seat seat1 = new Seat();
-        seat1.setScheduleId(scheduleId);
-        seat1.setState(Seat.State.RESERVED);
-        seat1.setSeatNo(1);
-        seat1.setConcertId(concertId);
-        seat1.setGrade("A");
-        seat1.setPrice(1000l);
-
+        Seat seat1 = SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
         seat1 = seatRepository.save(seat1);
 
         Reservation reservation = new Reservation();
@@ -137,13 +123,7 @@ public class SeatServiceIntegrationTest {
         Integer concertId = 1;
 
 
-        Seat seat1 = new Seat();
-        seat1.setScheduleId(scheduleId);
-        seat1.setState(Seat.State.RESERVED);
-        seat1.setSeatNo(1);
-        seat1.setConcertId(concertId);
-        seat1.setGrade("A");
-        seat1.setPrice(1000l);
+        Seat seat1 =  SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
 
         seat1 = seatRepository.save(seat1);
 
@@ -174,50 +154,19 @@ public class SeatServiceIntegrationTest {
         Integer scheduleId = 1;
         Integer concertId = 1;
 
-        Seat seat1 = new Seat();
-        seat1.setScheduleId(scheduleId);
-        seat1.setState(Seat.State.RESERVED);
-        seat1.setSeatNo(1);
-        seat1.setConcertId(concertId);
-        seat1.setGrade("A");
-        seat1.setPrice(1000l);
+        Seat seat1 =  SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
         seat1 = seatRepository.save(seat1);
 
-        Seat seat2 = new Seat();
-        seat2.setScheduleId(scheduleId);
-        seat2.setState(Seat.State.RESERVED);
-        seat2.setSeatNo(2);
-        seat2.setConcertId(concertId);
-        seat2.setGrade("A");
-        seat2.setPrice(1000l);
+        Seat seat2 =  SeatFixture.createSeat(null, concertId, scheduleId, 2, Seat.State.RESERVED, 1000l, "A");
         seat2 = seatRepository.save(seat2);
 
-        Reservation reservation1 = new Reservation();
-        reservation1.setUserId(1);
-        reservation1.setSeatId(seat1.getId());
-        reservation1.setSeatGrade(seat1.getGrade());
-        reservation1.setState(Reservation.State.WAITING);
-        reservation1.setConcertId(seat1.getConcertId());
-        reservation1.setPrice(seat1.getPrice());
-        reservation1.setScheduleId(seat1.getScheduleId());
-        reservation1.setSeatNo(seat1.getSeatNo());
-        reservation1.setCreatedTime(LocalDateTime.now().minusMinutes(15));
-        reservation1.setExpiredTime(LocalDateTime.now().minusMinutes(5));
+        Reservation reservation1 =
+                ReservationFixture.creasteReservation(null, 1, seat1.getConcertId(), seat1.getId(), seat1.getScheduleId(), seat1.getSeatNo(), Reservation.State.WAITING, seat1.getPrice(), seat1.getGrade(), LocalDateTime.now().minusMinutes(15));
         reservation1 = reservationRepository.save(reservation1);
 
-        Reservation reservation2 = new Reservation();
-        reservation2.setUserId(2);
-        reservation2.setSeatId(seat2.getId());
-        reservation2.setSeatGrade(seat2.getGrade());
-        reservation2.setState(Reservation.State.WAITING);
-        reservation2.setConcertId(seat2.getConcertId());
-        reservation2.setPrice(seat2.getPrice());
-        reservation2.setScheduleId(seat2.getScheduleId());
-        reservation2.setSeatNo(seat2.getSeatNo());
-        reservation2.setCreatedTime(LocalDateTime.now().minusMinutes(11));
-        reservation2.setExpiredTime(LocalDateTime.now().minusMinutes(1));
+        Reservation reservation2 =
+                ReservationFixture.creasteReservation(null, 2, seat2.getConcertId(), seat2.getId(), seat2.getScheduleId(), seat2.getSeatNo(), Reservation.State.WAITING, seat2.getPrice(), seat2.getGrade(), LocalDateTime.now().minusMinutes(11));
         reservation2 = reservationRepository.save(reservation2);
-
 
         //when
         seatService.expireReservation();
@@ -225,6 +174,7 @@ public class SeatServiceIntegrationTest {
         //then
         reservation1 = reservationRepository.findById(reservation1.getId());
         reservation2 = reservationRepository.findById(reservation2.getId());
+        System.out.println("reservation1 = " + reservation1.getSeatId());
         seat1 = seatRepository.findById(reservation1.getSeatId());
         seat2 = seatRepository.findById(reservation2.getSeatId());
         assertEquals(Reservation.State.EXPIRED, reservation1.getState());

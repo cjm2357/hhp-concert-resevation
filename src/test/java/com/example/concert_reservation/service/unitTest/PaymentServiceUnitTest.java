@@ -1,9 +1,10 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.entity.Payment;
-import com.example.concert_reservation.entity.Point;
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.entity.*;
+import com.example.concert_reservation.fixture.PaymentFixture;
+import com.example.concert_reservation.fixture.ReservationFixture;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.service.PaymentService;
 import com.example.concert_reservation.service.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,12 @@ public class PaymentServiceUnitTest {
     @Mock
     UserRepository userRepository;
 
+    @Mock
+    PointRepository pointRepository;
+
+    @Mock
+    TokenRepository tokenRepository;
+
     @InjectMocks
     PaymentService paymentService;
 
@@ -40,33 +47,16 @@ public class PaymentServiceUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        Reservation expectedReservation = new Reservation();
-        expectedReservation.setState(Reservation.State.WAITING);
-        expectedReservation.setSeatNo(1);
-        expectedReservation.setId(1);
-        expectedReservation.setPrice(10000l);
-        expectedReservation.setConcertId(1);
-        expectedReservation.setCreatedTime(LocalDateTime.now().minusMinutes(3));
-        expectedReservation.setExpiredTime(LocalDateTime.now().plusMinutes(2));
-        expectedReservation.setScheduleId(1);
-        expectedReservation.setUserId(1);
+        Reservation expectedReservation =
+                ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.WAITING, 10000l, "A", LocalDateTime.now().minusMinutes(3));
 
-        User expectedUser = new User();
-        Point expectedPoint = new Point();
-        expectedPoint.setAmount(20000l);
-        expectedPoint.setId(1);
-        expectedPoint.setUserId(1);
-        expectedUser.setPoint(expectedPoint);
-        expectedUser.setId(1);
+        User expectedUser = UserFixture.createUser(1, "user1", 1, 20000l);
 
-        Payment expectedPayment = new Payment();
-        expectedPayment.setCreatedTime(LocalDateTime.now());
-        expectedPayment.setId(1);
-        expectedPayment.setUserId(1);
-        expectedPayment.setReservationId(1);
+        Payment expectedPayment = PaymentFixture.createPayment(1, 1, 1, LocalDateTime.now());
 
         when(reservationRepository.findById(any())).thenReturn(expectedReservation);
         when( userRepository.findById(any())).thenReturn(expectedUser);
+        when(pointRepository.save(any())).thenReturn(expectedUser.getPoint());
         when( paymentRepository.save(any())).thenReturn(expectedPayment);
 
         //when
@@ -104,16 +94,9 @@ public class PaymentServiceUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        Reservation expectedReservation = new Reservation();
-        expectedReservation.setState(Reservation.State.EXPIRED);
-        expectedReservation.setSeatNo(1);
-        expectedReservation.setId(1);
-        expectedReservation.setPrice(10000l);
-        expectedReservation.setConcertId(1);
-        expectedReservation.setCreatedTime(LocalDateTime.now().minusMinutes(8));
-        expectedReservation.setExpiredTime(LocalDateTime.now().minusMinutes(3));
-        expectedReservation.setScheduleId(1);
-        expectedReservation.setUserId(1);
+        Reservation expectedReservation =
+                ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.EXPIRED, 10000l, "A", LocalDateTime.now().minusMinutes(8));
+
         when(reservationRepository.findById(any())).thenReturn(expectedReservation);
 
         //when
@@ -133,16 +116,9 @@ public class PaymentServiceUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        Reservation expectedReservation = new Reservation();
-        expectedReservation.setState(Reservation.State.WAITING);
-        expectedReservation.setSeatNo(1);
-        expectedReservation.setId(1);
-        expectedReservation.setPrice(10000l);
-        expectedReservation.setConcertId(1);
-        expectedReservation.setCreatedTime(LocalDateTime.now().minusMinutes(3));
-        expectedReservation.setExpiredTime(LocalDateTime.now().plusMinutes(2));
-        expectedReservation.setScheduleId(1);
-        expectedReservation.setUserId(1);
+        Reservation expectedReservation =
+                ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.WAITING, 10000l, "A", LocalDateTime.now().minusMinutes(3));
+
 
         User expectUser = new User();
 
@@ -166,24 +142,11 @@ public class PaymentServiceUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        Reservation expectedReservation = new Reservation();
-        expectedReservation.setState(Reservation.State.WAITING);
-        expectedReservation.setSeatNo(1);
-        expectedReservation.setId(1);
-        expectedReservation.setPrice(10000l);
-        expectedReservation.setConcertId(1);
-        expectedReservation.setCreatedTime(LocalDateTime.now().minusMinutes(3));
-        expectedReservation.setExpiredTime(LocalDateTime.now().plusMinutes(2));
-        expectedReservation.setScheduleId(1);
-        expectedReservation.setUserId(1);
+        Reservation expectedReservation =
+                ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.WAITING, 10000l, "A", LocalDateTime.now().minusMinutes(3));
 
-        User expectUser = new User();
-        expectUser.setId(1);
-        Point expectPoint = new Point();
-        expectPoint.setUserId(1);
-        expectPoint.setId(1);
-        expectPoint.setAmount(1000l);
-        expectUser.setPoint(expectPoint);
+
+        User expectUser = UserFixture.createUser(1, "user1", 1, 1000l);
 
         when(reservationRepository.findById(any())).thenReturn(expectedReservation);
         when( userRepository.findById(any())).thenReturn(expectUser);

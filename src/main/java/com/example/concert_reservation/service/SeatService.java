@@ -69,9 +69,7 @@ public class SeatService {
             seatIdList.add(reservation.getSeatId());
             reservation.setState(Reservation.State.EXPIRED);
         });
-        for(Integer i : seatIdList) {
-            System.out.println("i = " + i);
-        }
+
         seatRepository.saveAllStateBySeatId(seatIdList, Seat.State.EMPTY);
     }
 }

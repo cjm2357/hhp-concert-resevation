@@ -1,8 +1,9 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Token;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.service.TokenService;
 import com.example.concert_reservation.service.repository.TokenRepository;
 import com.example.concert_reservation.service.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

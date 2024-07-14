@@ -1,8 +1,10 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.dto.TokenResponseDto;
 import com.example.concert_reservation.entity.Token;
 import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.fixture.TokenFixture;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.service.TokenService;
 import com.example.concert_reservation.service.repository.TokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,50 +34,40 @@ public class TokenServiceUnitTest {
     @Test
     void 토큰발급_대기없음() {
         //given
-        Integer userId = 1;
-        Token expectedToken = new Token();
-        expectedToken.setTokenKey(UUID.randomUUID());
-        expectedToken.setState(Token.TokenState.ACTIVATE);
-        expectedToken.setCreatedTime(LocalDateTime.now());
-        expectedToken.setExpiredTime(LocalDateTime.now().plusMinutes(10));
-
+        User user = UserFixture.createUser(1, "user1", 1, 10000l);
+        Token expectedToken = TokenFixture.createToken(1, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getToken(userId);
+        Token token = tokenService.getToken(user.getId());
 
         //then
-        assertEquals(userId, token.getUser().getId());
+        assertEquals(user.getId(), token.getUser().getId());
         assertEquals(0, token.getOrder());
     }
 
     @Test
     void 토큰발급_대기있음() {
         //given
-        Integer userId = 1;
         List<Token> activatedTokens = new ArrayList<>();
 
         for (int i = 1; i< 51; i++) {
-            Token t = new Token();
-            t.setId(i);
-            t.setTokenKey(UUID.randomUUID());
+            User u = UserFixture.createUser(i, "user"+i, i, 1000l);
+            Token t = TokenFixture.createToken(i, u, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
             activatedTokens.add(t);
         }
 
-        Token expectedToken = new Token();
-        expectedToken.setTokenKey(UUID.randomUUID());
-        expectedToken.setState(Token.TokenState.WAITING);
-        expectedToken.setCreatedTime(LocalDateTime.now());
-        expectedToken.setExpiredTime(LocalDateTime.now().plusMinutes(10));
+        User user = UserFixture.createUser(60, "user60", 60, 1000l);
+        Token expectedToken =  TokenFixture.createToken(60, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.WAITING);
 
         when(tokenRepository.findByStateOrderById(any())).thenReturn(activatedTokens);
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getToken(userId);
+        Token token = tokenService.getToken(user.getId());
 
         //then
-        assertEquals(userId, token.getUser().getId());
+        assertEquals(user.getId(), token.getUser().getId());
         assertEquals(10, token.getOrder());
     }
 

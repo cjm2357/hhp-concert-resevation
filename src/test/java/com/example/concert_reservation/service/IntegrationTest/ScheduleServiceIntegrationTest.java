@@ -1,8 +1,11 @@
-package com.example.concert_reservation.service;
+package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Schedule;
 import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.fixture.ScheduleFixture;
+import com.example.concert_reservation.fixture.SeatFixture;
+import com.example.concert_reservation.service.ScheduleService;
 import com.example.concert_reservation.service.repository.ScheduleRepository;
 import com.example.concert_reservation.service.repository.SeatRepository;
 import org.junit.jupiter.api.Test;
@@ -35,40 +38,23 @@ public class ScheduleServiceIntegrationTest {
         //given
         Integer concertId = 1;
 
-        Schedule schedule1 = new Schedule();
-        schedule1.setConcertId(1);
-        schedule1.setDate(LocalDateTime.of(2024,1,1,0,0));
+        Schedule schedule1 = ScheduleFixture.createSchedule(null, concertId, LocalDateTime.of(2024,1,1,0,0 ));
         schedule1 = scheduleRepository.save(schedule1);
 
-        Schedule schedule2 = new Schedule();
-        schedule2.setConcertId(1);
-        schedule2.setDate(LocalDateTime.of(2024,1,3,0,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(null, concertId, LocalDateTime.of(2024,1,3,0,0 ));
         schedule2 = scheduleRepository.save(schedule2);
 
-        Seat schedule1seat1 = new Seat();
-        schedule1seat1.setConcertId(1);
-        schedule1seat1.setScheduleId(schedule1.getId());
-        schedule1seat1.setState(Seat.State.RESERVED);
+        Seat schedule1seat1 = SeatFixture.createSeat(null, concertId, schedule1.getId(), 1, Seat.State.RESERVED, 1000l, "A");
         schedule1seat1 = seatRepository.save(schedule1seat1);
 
-        Seat schedule1seat2 = new Seat();
-        schedule1seat2.setConcertId(1);
-        schedule1seat2.setScheduleId(schedule1.getId());
-        schedule1seat2.setState(Seat.State.RESERVED);
+        Seat schedule1seat2 = SeatFixture.createSeat(null, concertId, schedule1.getId(), 2, Seat.State.RESERVED, 1000l, "A");
         schedule1seat2= seatRepository.save(schedule1seat2);
 
-        Seat schedule2seat1 = new Seat();
-        schedule2seat1.setConcertId(1);
-        schedule2seat1.setScheduleId(schedule2.getId());
-        schedule2seat1.setState(Seat.State.RESERVED);
+        Seat schedule2seat1 = SeatFixture.createSeat(null, concertId, schedule2.getId(), 1, Seat.State.RESERVED, 1000l, "A");
         schedule2seat1 = seatRepository.save(schedule2seat1);
 
-        Seat schedule2seat2 = new Seat();
-        schedule2seat2.setConcertId(1);
-        schedule2seat2.setScheduleId(schedule2.getId());
-        schedule2seat2.setState(Seat.State.EMPTY);
+        Seat schedule2seat2 = SeatFixture.createSeat(null, concertId, schedule2.getId(), 2, Seat.State.EMPTY, 1000l, "A");
         schedule2seat2= seatRepository.save(schedule2seat2);
-
 
 
         //when
