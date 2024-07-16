@@ -8,10 +8,11 @@ import java.time.LocalDateTime;
 public class ScheduleFixture {
 
     public static Schedule createSchedule(Integer id, Integer concertId, LocalDateTime dateTime) {
-        Schedule schedule = new Schedule();
-        schedule.setId(id);
-        schedule.setConcertId(concertId);
-        schedule.setDate(dateTime);
+        Schedule schedule = Schedule.builder()
+                .id(id)
+                .concertId(concertId)
+                .date(dateTime)
+                .build();
         return schedule;
     }
 }

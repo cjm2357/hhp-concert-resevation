@@ -2,6 +2,7 @@ package com.example.concert_reservation.contorller.unitTest;
 
 import com.example.concert_reservation.controller.ScheduleController;
 import com.example.concert_reservation.entity.Schedule;
+import com.example.concert_reservation.fixture.ScheduleFixture;
 import com.example.concert_reservation.manager.TokenManager;
 import com.example.concert_reservation.service.ScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,16 +46,10 @@ public class ScheduleControllerUnitTest {
         //given
         UUID tokenKey = UUID.randomUUID();
         List<Schedule> expectedSchedules = new ArrayList<>();
-        Schedule schedule1 = new Schedule();
-        schedule1.setId(1);
-        schedule1.setConcertId(1);
-        schedule1.setDate(LocalDateTime.of(2024, 1, 1, 0, 0));
+        Schedule schedule1 = ScheduleFixture.createSchedule(1, 1,LocalDateTime.of(2024, 1, 1, 0, 0));
         expectedSchedules.add(schedule1);
 
-        Schedule schedule2 = new Schedule();
-        schedule2.setId(2);
-        schedule2.setConcertId(1);
-        schedule2.setDate(LocalDateTime.of(2024, 1,3,0,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(2, 1,LocalDateTime.of(2024, 1,3,0,0));
         expectedSchedules.add(schedule2);
 
         when(scheduleService.getAvailableScheduleList(any())).thenReturn(expectedSchedules);

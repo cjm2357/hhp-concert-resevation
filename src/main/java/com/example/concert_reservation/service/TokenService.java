@@ -59,7 +59,7 @@ public class TokenService {
     }
 
     @Transactional
-    public Token getTokenStatus(UUID key) {
+    public Token getTokenStatusAndUpdate(UUID key) {
 
         if (key == null) {
             throw new IllegalArgumentException("유효하지않은 토큰 key 입니다.");
@@ -87,6 +87,12 @@ public class TokenService {
         if (token == null) throw new RuntimeException("토큰 정보가 없습니다.");
         if (token.getState() == Token.TokenState.ACTIVATE) return true;
         return false;
+    }
+
+    public Token getTokenInfo(UUID tokenKey) {
+        Token token = tokenRepository.findByTokenKey(tokenKey);
+        if (token == null) throw new RuntimeException("토큰 정보가 없습니다.");
+        return token;
     }
 
     public void expireToken() {

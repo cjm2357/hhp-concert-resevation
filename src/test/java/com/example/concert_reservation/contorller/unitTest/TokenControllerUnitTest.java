@@ -110,7 +110,7 @@ public class TokenControllerUnitTest {
         token.setTokenKey(tokenKey);
         token.setId(1);
 
-        when(tokenService.getTokenStatus(tokenKey)).thenReturn(token);
+        when(tokenService.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
 
         //when
         //then

@@ -61,7 +61,7 @@ public class TokenServiceIntegrationTest {
         Token tokenInfo = tokenService.getToken(userId);
         
         //when
-        Token token = tokenService.getTokenStatus(tokenInfo.getTokenKey());
+        Token token = tokenService.getTokenStatusAndUpdate(tokenInfo.getTokenKey());
 
         //then
         assertEquals(userId, tokenInfo.getUser().getId());

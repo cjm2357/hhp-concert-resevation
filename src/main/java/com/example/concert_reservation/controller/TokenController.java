@@ -39,7 +39,7 @@ public class TokenController {
     @GetMapping("/token/status")
     public ResponseEntity<?> readTokenStatus(@RequestHeader(value = "Authorization", required = false) UUID key) {
         if (key != null) {
-            Token token = tokenService.getTokenStatus(key);
+            Token token = tokenService.getTokenStatusAndUpdate(key);
             TokenResponseDto responseDto = new TokenResponseDto(token);
             return ResponseEntity.ok(responseDto);
         } else {

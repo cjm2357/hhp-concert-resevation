@@ -3,6 +3,7 @@ package com.example.concert_reservation.contorller.unitTest;
 
 import com.example.concert_reservation.controller.ConcertController;
 import com.example.concert_reservation.entity.Concert;
+import com.example.concert_reservation.fixture.ConcertFixture;
 import com.example.concert_reservation.service.ConcertService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -38,14 +39,10 @@ public class ConcertControllerUnitTest {
     void 콘서트리스트_조회_성공 () throws Exception {
         //given
         List<Concert> concertList = new ArrayList<>();
-        Concert concert1 = new Concert();
-        concert1.setId(1);
-        concert1.setName("아이유 콘서트");
-        concertList.add(concert1);
+        Concert concert1 = ConcertFixture.createConcert(1, "아이유 콘서트");
+        Concert concert2 = ConcertFixture.createConcert(2, "박효신 콘서트");
 
-        Concert concert2 = new Concert();
-        concert2.setId(2);
-        concert2.setName("박효신 콘서트");
+        concertList.add(concert1);
         concertList.add(concert2);
 
         when(concertService.getConcertList()).thenReturn(concertList);

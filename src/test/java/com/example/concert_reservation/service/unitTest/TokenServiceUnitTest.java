@@ -124,7 +124,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getTokenStatus(searchedToken.getTokenKey());
+        Token token = tokenService.getTokenStatusAndUpdate(searchedToken.getTokenKey());
 
         //then
         assertEquals(60- 50, expectedToken.getOrder());
@@ -152,7 +152,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.findByTokenKey(any())).thenReturn(curToken);
 
         //when
-        Token token = tokenService.getTokenStatus(curToken.getTokenKey());
+        Token token = tokenService.getTokenStatusAndUpdate(curToken.getTokenKey());
 
         //then
         assertEquals(0, token.getOrder());
@@ -165,7 +165,7 @@ public class TokenServiceUnitTest {
 
         //when
         Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            tokenService.getTokenStatus(null);
+            tokenService.getTokenStatusAndUpdate(null);
         });
 
         //then
