@@ -100,6 +100,10 @@ public class TokenService {
         tokenRepository.expireToken(LocalDateTime.now());
     }
 
+    public void updateStateToExpiredByUserId(Integer userId) {
+         tokenRepository.updateStateToExpiredByUserId(userId);
+    }
+
     private Integer calcOrder(Token token, List<Token> activeTokens) {
 
         int activeCount = activeTokens.size();

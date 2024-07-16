@@ -32,4 +32,17 @@ public class Reservation {
     private State state;
     private LocalDateTime createdTime;
     private LocalDateTime expiredTime;
+
+    public void enrollSeatInfoForReservation (Integer userId, Seat seat) {
+        this.seatId = seat.getId();
+        this.userId = userId;
+        this.scheduleId = seat.getScheduleId();
+        this.concertId = seat.getConcertId();
+        this.seatNo = seat.getSeatNo();
+        this.seatGrade = getSeatGrade();
+        this.price = seat.getPrice();
+        this.state = State.WAITING;
+        this.createdTime = LocalDateTime.now();
+        this.expiredTime = LocalDateTime.now().plusMinutes(EXPIRE_TIME_FIVE_MIN);
+    }
 }

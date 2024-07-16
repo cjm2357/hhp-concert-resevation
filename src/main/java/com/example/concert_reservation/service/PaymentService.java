@@ -41,7 +41,7 @@ public class PaymentService {
         }
         User user = new User();
         user.setId(payment.getUserId());
-        user = userRepository.findById(user);
+        user = userRepository.findById(user.getId());
 
         if (user.getPoint() == null) throw new RuntimeException("유저의 포인트 정보가 없습니다.");
         if (user.getPoint().getAmount() < reservation.getPrice()) throw new RuntimeException("유저의 포인트가 결제금액보다 적습니다.");
@@ -61,6 +61,10 @@ public class PaymentService {
 
 
         return payment;
+    }
+
+    public Payment save(Payment payment) {
+        return paymentRepository.save(payment);
     }
 
 

@@ -15,8 +15,8 @@ public class UserRepositoryImpl implements UserRepository {
       this.userJpaRepository = userJpaRepository;
   }
 
-  public User findById (User user) {
-      return userJpaRepository.findById(user.getId()).orElse(null);
+  public User findById (Integer userId) {
+      return userJpaRepository.findById(userId).orElse(null);
   }
 
    public User save (User user) {

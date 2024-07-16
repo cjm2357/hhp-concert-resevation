@@ -23,6 +23,10 @@ public class SeatService {
         this.reservationRepository = reservationRepository;
     }
 
+    public Seat getSeatById(Integer seatId) {
+        return seatRepository.findById(seatId);
+    }
+
     public List<Seat> getAvailableSeatList(Integer scheduleId) {
         List<Seat> seats = seatRepository.findByScheduleIdAndState(scheduleId, Seat.State.EMPTY);
         return seats;
@@ -70,6 +74,10 @@ public class SeatService {
             reservation.setState(Reservation.State.EXPIRED);
         });
 
+        seatRepository.saveAllStateBySeatId(seatIdList, Seat.State.EMPTY);
+    }
+
+    public void saveAllSeatState( List<Integer> seatIdList, Seat.State state) {
         seatRepository.saveAllStateBySeatId(seatIdList, Seat.State.EMPTY);
     }
 }

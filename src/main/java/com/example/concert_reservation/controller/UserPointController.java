@@ -1,5 +1,6 @@
 package com.example.concert_reservation.controller;
 
+import com.example.concert_reservation.application.UserPointFacade;
 import com.example.concert_reservation.dto.UserPointRequestDto;
 import com.example.concert_reservation.dto.UserPointResponseDto;
 import com.example.concert_reservation.entity.User;
@@ -17,15 +18,17 @@ public class UserPointController {
 
     private final UserPointService userPointService;
 
-    public UserPointController(UserPointService userPointService) {
+    private final UserPointFacade userPointFacade;
+    public UserPointController(UserPointService userPointService, UserPointFacade userPointFacade) {
         this.userPointService = userPointService;
+        this.userPointFacade = userPointFacade;
     }
 
     // 포인트 조회 API
     @PostMapping("/points")
     public ResponseEntity<?> readPoint(@RequestBody UserPointRequestDto dto) {
         if (dto.getUserId() != null) {
-                User user = userPointService.getPoint(dto.toEntity());
+                User user = userPointFacade.getUserWithPoint(dto.getUserId());
             return ResponseEntity.ok(new UserPointResponseDto(user));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -37,7 +40,7 @@ public class UserPointController {
     @PostMapping("/points/charge")
     public ResponseEntity<?> chargePoint(@RequestBody UserPointRequestDto dto) {
         if (dto.getUserId() != null && dto.getAmount() !=null && dto.getAmount() >= 0) {
-            User user = userPointService.chargePoint(dto.toEntity(), dto.getAmount());
+            User user = userPointFacade.chargePoint(dto.toEntity(), dto.getAmount());
             UserPointResponseDto responseDto = new UserPointResponseDto(user);
             return ResponseEntity.ok(responseDto);
 

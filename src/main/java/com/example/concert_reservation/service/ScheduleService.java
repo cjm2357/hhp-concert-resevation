@@ -27,12 +27,6 @@ public class ScheduleService {
         //concert 빈좌석 조회
         //빈좌석인 seat의 scheduleId와 schedule의 Id가 일치하는 schedule만 리턴한다.
         List<Seat> seats = seatRepository.findByConcertIdAndState(concertId, Seat.State.EMPTY);
-        for (Schedule s : schedules) {
-            System.out.println("AAA" + s.toString());
-        }
-        for (Seat s : seats) {
-            System.out.println("SSS" + s.toString());
-        }
         schedules = schedules.stream()
                 .filter(schedule ->
                     seats.stream().filter(seat-> seat.getScheduleId() == schedule.getId()

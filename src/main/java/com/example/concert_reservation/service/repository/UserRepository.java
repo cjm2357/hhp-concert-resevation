@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface UserRepository {
 
-    User findById(User user);
+    User findById(Integer userId);
 
     User save(User user);
 }
