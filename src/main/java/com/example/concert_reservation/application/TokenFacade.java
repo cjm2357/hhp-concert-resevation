@@ -27,7 +27,7 @@ public class TokenFacade {
 
     @Transactional
     public Token getTokenStatusAndUpdate(UUID key) {
-       return getTokenStatusAndUpdate(key);
+       return tokenService.getTokenStatusAndUpdate(key);
     }
 
     public boolean checkTokenActivate(UUID tokenKey) {

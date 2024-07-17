@@ -2,7 +2,6 @@ package com.example.concert_reservation.service.IntegrationTest;
 
 
 import com.example.concert_reservation.entity.Payment;
-import com.example.concert_reservation.entity.Point;
 import com.example.concert_reservation.entity.Reservation;
 import com.example.concert_reservation.entity.User;
 import com.example.concert_reservation.fixture.PaymentFixture;
@@ -66,9 +65,7 @@ public class PaymentServiceIntegrationTest {
         payment = paymentService.pay(payment);
 
         //then
-        User user = new User();
-        user.setId(userId);
-        user = userRepository.findById(user);
+        User user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertNotNull(payment.getId());
         assertEquals(10000-8000, user.getPoint().getAmount());
@@ -88,9 +85,7 @@ public class PaymentServiceIntegrationTest {
         });
 
         //then
-        User user = new User();
-        user.setId(userId);
-        user = userRepository.findById(user);
+        User user = userRepository.findById(userId);
         assertEquals("예약 정보가 없습니다.", exception.getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
 
@@ -114,9 +109,7 @@ public class PaymentServiceIntegrationTest {
         });
 
         //then
-        User user = new User();
-        user.setId(userId);
-        user = userRepository.findById(user);
+        User user = userRepository.findById(userId);
         assertEquals("결제 시간이 만료되었습니다.", exception.getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
 
@@ -140,9 +133,7 @@ public class PaymentServiceIntegrationTest {
         });
 
         //then
-        User user = new User();
-        user.setId(userId);
-        user = userRepository.findById(user);
+        User user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertEquals("유저의 포인트가 결제금액보다 적습니다.", exception.getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());

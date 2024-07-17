@@ -1,6 +1,5 @@
 package com.example.concert_reservation.service;
 
-
 import com.example.concert_reservation.entity.Token;
 import com.example.concert_reservation.entity.User;
 import com.example.concert_reservation.service.repository.TokenRepository;

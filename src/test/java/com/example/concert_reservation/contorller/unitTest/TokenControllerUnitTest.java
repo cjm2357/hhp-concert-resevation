@@ -1,10 +1,11 @@
 package com.example.concert_reservation.contorller.unitTest;
 
+import com.example.concert_reservation.application.TokenFacade;
 import com.example.concert_reservation.controller.TokenController;
 import com.example.concert_reservation.dto.TokenRequestDto;
 import com.example.concert_reservation.entity.Token;
 import com.example.concert_reservation.entity.User;
-import com.example.concert_reservation.service.TokenService;
+import com.example.concert_reservation.fixture.TokenFixture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.Mockito.when;
@@ -32,7 +34,7 @@ public class TokenControllerUnitTest {
     MockMvc mvc;
 
     @MockBean
-    TokenService tokenService;
+    TokenFacade tokenFacade;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -50,17 +52,14 @@ public class TokenControllerUnitTest {
         TokenRequestDto requestDto = new TokenRequestDto();
         requestDto.setUserId(1);
 
-        Token token = new Token();
         UUID tokenKey = UUID.randomUUID();
         User user = new User();
         user.setId(1);
-        token.setUser(user);
-        token.setTokenKey(tokenKey);
-        token.setId(1);
+        Token token = TokenFixture.createToken(1, user, tokenKey, LocalDateTime.now(), Token.TokenState.ACTIVATE);
         token.setOrder(0);
 
         // JSON 문자열을 직접 생성
-        when(tokenService.getToken(requestDto.getUserId())).thenReturn(token);
+        when(tokenFacade.getToken(requestDto.getUserId())).thenReturn(token);
 
         //when
         //then
@@ -101,16 +100,14 @@ public class TokenControllerUnitTest {
         TokenRequestDto requestDto = new TokenRequestDto();
         requestDto.setUserId(1);
 
-        Token token = new Token();
         UUID tokenKey = UUID.randomUUID();
         User user = new User();
         user.setId(1);
-        token.setUser(user);
+        Token token = TokenFixture.createToken(1, user, tokenKey, LocalDateTime.now(), Token.TokenState.WAITING);
         token.setOrder(100);
         token.setTokenKey(tokenKey);
-        token.setId(1);
 
-        when(tokenService.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
+        when(tokenFacade.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
 
         //when
         //then

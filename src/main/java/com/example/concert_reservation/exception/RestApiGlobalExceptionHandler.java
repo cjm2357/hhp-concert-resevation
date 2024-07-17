@@ -26,8 +26,6 @@ public class RestApiGlobalExceptionHandler {
                 .build();
 
 
-        new CustomException(USER_NOT_FOUND);
-
         return new ResponseEntity<>(errorResponse, HttpStatus.valueOf(errorResponse.getStatus()));
 
     }

@@ -1,4 +1,4 @@
-package com.example.concert_reservation.service.unitTest;
+package com.example.concert_reservation.service.unitTest.service;
 
 import com.example.concert_reservation.entity.Concert;
 import com.example.concert_reservation.fixture.ConcertFixture;
@@ -57,4 +57,5 @@ public class ConcertServiceUnitTest {
         //then
         assertEquals(0, concertList.size());
     }
+
 }

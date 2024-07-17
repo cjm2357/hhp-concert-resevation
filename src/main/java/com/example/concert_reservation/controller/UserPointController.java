@@ -4,7 +4,6 @@ import com.example.concert_reservation.application.UserPointFacade;
 import com.example.concert_reservation.dto.UserPointRequestDto;
 import com.example.concert_reservation.dto.UserPointResponseDto;
 import com.example.concert_reservation.entity.User;
-import com.example.concert_reservation.service.UserPointService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,11 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class UserPointController {
 
-    private final UserPointService userPointService;
-
     private final UserPointFacade userPointFacade;
-    public UserPointController(UserPointService userPointService, UserPointFacade userPointFacade) {
-        this.userPointService = userPointService;
+
+    public UserPointController(UserPointFacade userPointFacade) {
         this.userPointFacade = userPointFacade;
     }
 

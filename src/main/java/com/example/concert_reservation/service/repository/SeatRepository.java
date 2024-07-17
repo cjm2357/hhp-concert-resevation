@@ -13,4 +13,6 @@ public interface SeatRepository {
 
     void saveAllStateBySeatId(List<Integer> seatIdList, Seat.State state);
 
+    Seat saveSeatStateById(Integer seatId, Seat.State state);
+
 }

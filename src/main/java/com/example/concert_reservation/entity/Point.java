@@ -19,7 +19,7 @@ public class Point {
 
     private Integer userId;
 
-    private Long amount;
+    private long amount;
 
     public Point() {
 

@@ -1,5 +1,6 @@
 package com.example.concert_reservation.controller;
 
+import com.example.concert_reservation.application.TokenFacade;
 import com.example.concert_reservation.dto.TokenRequestDto;
 import com.example.concert_reservation.dto.TokenResponseDto;
 import com.example.concert_reservation.entity.Token;
@@ -14,10 +15,10 @@ import java.util.UUID;
 @RequestMapping("/api")
 public class TokenController {
 
-    private final TokenService tokenService;
+    private final TokenFacade tokenFacade;
 
-    public TokenController(TokenService tokenService) {
-        this.tokenService = tokenService;
+    public TokenController(TokenFacade tokenFacade) {
+        this.tokenFacade = tokenFacade;
     }
 
     // 토큰 발급 API
@@ -27,7 +28,7 @@ public class TokenController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("no user ID");
         }
 
-        Token token = tokenService.getToken(dto.getUserId());
+        Token token = tokenFacade.getToken(dto.getUserId());
         TokenResponseDto responseDto = new TokenResponseDto(token);
         return ResponseEntity.ok(responseDto);
 
@@ -39,7 +40,7 @@ public class TokenController {
     @GetMapping("/token/status")
     public ResponseEntity<?> readTokenStatus(@RequestHeader(value = "Authorization", required = false) UUID key) {
         if (key != null) {
-            Token token = tokenService.getTokenStatusAndUpdate(key);
+            Token token = tokenFacade.getTokenStatusAndUpdate(key);
             TokenResponseDto responseDto = new TokenResponseDto(token);
             return ResponseEntity.ok(responseDto);
         } else {

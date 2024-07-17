@@ -1,11 +1,11 @@
-package com.example.concert_reservation.service.unitTest;
+package com.example.concert_reservation.service.unitTest.facade;
 
+import com.example.concert_reservation.application.UserPointFacade;
 import com.example.concert_reservation.entity.Point;
 import com.example.concert_reservation.entity.User;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.service.UserPointService;
-import com.example.concert_reservation.service.repository.PointRepository;
-import com.example.concert_reservation.service.repository.UserRepository;
+import com.example.concert_reservation.service.PointService;
+import com.example.concert_reservation.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,26 +18,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserPointServiceUnitTest {
+public class UserPointFacadeUnitTest {
 
     @Mock
-    UserRepository userRepository;
+    UserService userService;
 
     @Mock
-    PointRepository pointRepository;
+    PointService pointService;
 
     @InjectMocks
-    UserPointService userPointService;
+    UserPointFacade userPointFacade;
+
 
     @Test
     void 포인트조회_성공() {
         //given
         User user = UserFixture.createUser(1, "user1", 1, 1000l);
 
-        when(userRepository.findById(any())).thenReturn(user);
+        when(userService.getUser(any())).thenReturn(user);
 
         //when
-        User responseUser = userPointService.getPoint(user);
+        User responseUser = userPointFacade.getUserWithPoint(user.getId());
 
         //then
         assertEquals(user.getId(), responseUser.getId());
@@ -47,13 +48,13 @@ public class UserPointServiceUnitTest {
     @Test
     void 포인트조회_실패() {
         //given
-        User user = UserFixture.createUser(1, "user1", null, null);
+        User user = UserFixture.createUser(1, "user1", null, 0l);
 
-        when(userRepository.findById(any())).thenReturn(null);
+        when(userService.getUser(any())).thenReturn(null);
 
         //when
         Throwable exception = assertThrows(NullPointerException.class, () -> {
-            userPointService.getPoint(user);
+            userPointFacade.getUserWithPoint(user.getId());
         });
 
 
@@ -61,23 +62,22 @@ public class UserPointServiceUnitTest {
         assertEquals("해당 유저의 정보가 없습니다.", exception.getMessage().toString());
     }
 
-
     @Test
     void 포인트충전_성공() {
         //given
         User user = UserFixture.createUser(1, "user1", 1, 3000l);
 
-        when(pointRepository.findByUserIdWithLock(any())).thenReturn(user.getPoint());
+        when(pointService.getPointByUserIdWithLock(any())).thenReturn(user.getPoint());
 
         Long plusPoint = 5000l;
         Point chargePoint = new Point();
         chargePoint.setAmount(user.getPoint().getAmount() + plusPoint);
-        when(pointRepository.save(any())).thenReturn(chargePoint);
+        when(pointService.chargePoint(any())).thenReturn(chargePoint);
 
-        when(userRepository.save(any())).thenReturn(user);
+        when(userService.save(any())).thenReturn(user);
 
         //when
-        User responseUser = userPointService.chargePoint(user, plusPoint);
+        User responseUser = userPointFacade.chargePoint(user, plusPoint);
 
         //then
         assertEquals(user.getId(), responseUser.getId());
@@ -91,12 +91,11 @@ public class UserPointServiceUnitTest {
 
         //when
         Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            userPointService.chargePoint(user, user.getPoint().getAmount());
+            userPointFacade.chargePoint(user, user.getPoint().getAmount());
         });
 
         //then
         assertEquals("충전하려는 값이 음수입니다.", exception.getMessage().toString());
 
     }
-
 }

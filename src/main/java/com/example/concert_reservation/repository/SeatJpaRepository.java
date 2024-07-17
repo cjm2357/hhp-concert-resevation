@@ -19,4 +19,9 @@ public interface SeatJpaRepository extends JpaRepository<Seat, Integer> {
     @Query("UPDATE Seat s SET s.state = :state WHERE s.id IN :seatIdList")
     void saveAllStateBySeatId(List<Integer> seatIdList, Seat.State state);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE Seat s SET s.state = :state WHERE s.id = :seatId")
+    Seat saveSeatStateById(Integer seatId, Seat.State state);
+
 }

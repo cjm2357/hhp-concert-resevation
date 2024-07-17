@@ -3,10 +3,7 @@ package com.example.concert_reservation.controller;
 
 import com.example.concert_reservation.application.ConcertFacade;
 import com.example.concert_reservation.dto.*;
-import com.example.concert_reservation.entity.Concert;
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.Schedule;
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.entity.*;
 import com.example.concert_reservation.manager.TokenManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,6 +93,29 @@ public class ConcertController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body("no seat ID");
+
+    }
+
+        // 결제 API
+    @PostMapping("/payment")
+    public ResponseEntity<?> pay(
+            @RequestHeader(value = "Authorization", required = false) UUID key,
+            @RequestBody PaymentRequestDto dto
+    ) {
+        try {
+            tokenManager.validateToken(key);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("invalid token");
+        }
+
+        if (dto.getReservationId() != null && dto.getReservationId() > 0) {
+                Payment payment = concertFacade.pay(dto.toEntity());
+                PaymentResponseDto responseDto = new PaymentResponseDto(payment);
+
+                return ResponseEntity.ok(responseDto);
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("no reservation ID");
 
 
     }

@@ -29,7 +29,7 @@ public class UserPointFacade {
     @Transactional
     public User chargePoint(User user, Long amount) {
         if (amount < 0 ) throw new IllegalArgumentException("충전하려는 값이 음수입니다.");
-        User userInfo = userService.getUser(user.getId());
+//        User userInfo = userService.getUser(user.getId());
         Point point = pointService.getPointByUserIdWithLock(user.getId());
         point.setAmount(point.getAmount() + amount);
         point = pointService.chargePoint(point);

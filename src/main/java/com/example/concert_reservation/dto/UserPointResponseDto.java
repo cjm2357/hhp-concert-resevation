@@ -16,7 +16,11 @@ public class UserPointResponseDto {
     public UserPointResponseDto(User user) {
         this.userId = user.getId();
         this.userName = user.getName();
-        this.amount = user.getPoint().getAmount();
+        if (user.getPoint() == null) {
+            this.amount = 0l;
+        } else {
+            this.amount = user.getPoint().getAmount();
+        }
     }
     
 }

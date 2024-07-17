@@ -47,7 +47,14 @@ public class ConcertFacade {
     }
 
     public List<Schedule> getAvailableScheduleList(Integer concertId) {
-        return scheduleService.getAvailableScheduleList(concertId);
+        List<Schedule> schedules = scheduleService.getScheduleListByConcertId(concertId);
+        List<Seat> seats = seatService.getAvailableSeatListByConcertId(concertId);
+        schedules = schedules.stream()
+                .filter(schedule ->
+                        seats.stream().filter(seat-> seat.getScheduleId() == schedule.getId()
+                        ).findAny().isPresent()
+                ).toList();
+        return schedules;
     }
 
     public List<Seat> getAvailableSeatList(Integer scheduleId) {
@@ -85,6 +92,7 @@ public class ConcertFacade {
 
         reservation.setState(Reservation.State.COMPLETED);
         reservationService.changeReservationInfo(reservation);
+        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
         tokenService.updateStateToExpiredByUserId(user.getId());
 

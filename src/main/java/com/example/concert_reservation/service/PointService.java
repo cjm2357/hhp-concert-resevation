@@ -19,7 +19,6 @@ public class PointService {
         return pointRepository.save(point);
     }
 
-
     public Point getPointByUserIdWithLock(Integer userId) {
         return pointRepository.findByUserIdWithLock(userId);
     }
