@@ -1,6 +1,6 @@
 package com.example.concert_reservation.repository;
 
-import com.example.concert_reservation.entity.Point;
+import com.example.concert_reservation.domain.entity.Point;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

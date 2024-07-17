@@ -1,11 +1,8 @@
 package com.example.concert_reservation.repository.impl;
 
-import com.example.concert_reservation.entity.Concert;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Concert;
 import com.example.concert_reservation.repository.ConcertJpaRepository;
-import com.example.concert_reservation.repository.UserJpaRepository;
-import com.example.concert_reservation.service.repository.ConcertRepository;
-import com.example.concert_reservation.service.repository.UserRepository;
+import com.example.concert_reservation.domain.service.repository.ConcertRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

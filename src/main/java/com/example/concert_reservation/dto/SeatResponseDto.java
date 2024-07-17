@@ -1,10 +1,9 @@
 package com.example.concert_reservation.dto;
 
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Seat;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

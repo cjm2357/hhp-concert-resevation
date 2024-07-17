@@ -1,14 +1,11 @@
 package com.example.concert_reservation.application;
 
 
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
-import com.example.concert_reservation.service.TokenService;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.service.TokenService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -20,7 +17,6 @@ public class TokenFacade {
         this.tokenService = tokenService;
     }
 
-    @Transactional
     public Token getToken(Integer userId) {
        return tokenService.getToken(userId);
     }
@@ -30,9 +26,8 @@ public class TokenFacade {
        return tokenService.getTokenStatusAndUpdate(key);
     }
 
-    public boolean checkTokenActivate(UUID tokenKey) {
-        return tokenService.checkTokenActivate(tokenKey);
-    }
+    public Token getTokenInfo(UUID tokenKey) { return tokenService.getTokenInfo(tokenKey);}
+
 
 
     public void expireToken() {

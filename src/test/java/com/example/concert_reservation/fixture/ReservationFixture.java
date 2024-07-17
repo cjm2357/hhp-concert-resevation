@@ -1,9 +1,6 @@
 package com.example.concert_reservation.fixture;
 
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.Seat;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import com.example.concert_reservation.domain.entity.Reservation;
 
 import java.time.LocalDateTime;
 

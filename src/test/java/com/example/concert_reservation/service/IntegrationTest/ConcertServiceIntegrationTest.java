@@ -1,12 +1,10 @@
 package com.example.concert_reservation.service.IntegrationTest;
 
 
-import com.example.concert_reservation.entity.Concert;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Concert;
 import com.example.concert_reservation.fixture.ConcertFixture;
-import com.example.concert_reservation.service.ConcertService;
-import com.example.concert_reservation.service.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.concert_reservation.domain.service.ConcertService;
+import com.example.concert_reservation.domain.service.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

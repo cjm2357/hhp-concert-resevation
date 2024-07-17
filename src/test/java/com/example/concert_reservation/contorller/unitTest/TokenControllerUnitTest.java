@@ -1,11 +1,12 @@
 package com.example.concert_reservation.contorller.unitTest;
 
 import com.example.concert_reservation.application.TokenFacade;
-import com.example.concert_reservation.controller.TokenController;
+import com.example.concert_reservation.presentation.controller.TokenController;
 import com.example.concert_reservation.dto.TokenRequestDto;
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.TokenFixture;
+import com.example.concert_reservation.presentation.interceptor.TokenInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,9 @@ public class TokenControllerUnitTest {
 
     @MockBean
     TokenFacade tokenFacade;
+
+    @MockBean
+    TokenInterceptor tokenInterceptor;
 
     @Autowired
     private ObjectMapper objectMapper;

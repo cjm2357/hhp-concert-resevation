@@ -1,8 +1,8 @@
 package com.example.concert_reservation.application;
 
-import com.example.concert_reservation.entity.*;
-import com.example.concert_reservation.service.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import com.example.concert_reservation.domain.entity.*;
+import com.example.concert_reservation.domain.service.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Slf4j
 public class ConcertFacade {
 
     private final UserService userService;
@@ -72,19 +73,28 @@ public class ConcertFacade {
     @Transactional
     public Payment pay(Payment payment) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
-        if (reservation == null) throw new NullPointerException("예약 정보가 없습니다.");
+        if (reservation == null) {
+            log.warn("no reservation information");
+            throw new NullPointerException("예약 정보가 없습니다.");
+        }
         if (reservation.getState() == Reservation.State.EXPIRED || reservation.getExpiredTime().isBefore(LocalDateTime.now())) {
+            log.warn("{} user, payment time expired", payment.getUserId());
             throw new RuntimeException("결제 시간이 만료되었습니다.");
         }
-        User user = new User();
-        user.setId(payment.getUserId());
-        user = userService.getUser(user.getId());
 
-        if (user.getPoint() == null) throw new RuntimeException("유저의 포인트 정보가 없습니다.");
-        if (user.getPoint().getAmount() < reservation.getPrice()) throw new RuntimeException("유저의 포인트가 결제금액보다 적습니다.");
+        User user = userService.getUser(payment.getUserId());
+
+        if (user.getPoint() == null) {
+            log.warn("{} user, no point information", user.getId());
+            throw new RuntimeException("유저의 포인트 정보가 없습니다.");
+        }
+        if (user.getPoint().getAmount() < reservation.getPrice()) {
+            log.warn("{} user, points are less than the payment amount");
+            throw new RuntimeException("유저의 포인트가 결제금액보다 적습니다.");
+        }
 
         payment.setCreatedTime(LocalDateTime.now());
-        payment = paymentService.save(payment);
+        payment = paymentService.pay(payment);
 
         Point userPoint = user.getPoint();
         userPoint.setAmount(userPoint.getAmount() - reservation.getPrice());

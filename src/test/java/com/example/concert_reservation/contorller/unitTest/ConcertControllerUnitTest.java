@@ -2,17 +2,16 @@ package com.example.concert_reservation.contorller.unitTest;
 
 
 import com.example.concert_reservation.application.ConcertFacade;
-import com.example.concert_reservation.controller.ConcertController;
+import com.example.concert_reservation.domain.entity.*;
+import com.example.concert_reservation.domain.service.ConcertService;
 import com.example.concert_reservation.dto.PaymentRequestDto;
 import com.example.concert_reservation.dto.SeatReservationRequestDto;
-import com.example.concert_reservation.entity.*;
 import com.example.concert_reservation.fixture.ConcertFixture;
 import com.example.concert_reservation.fixture.PaymentFixture;
 import com.example.concert_reservation.fixture.ScheduleFixture;
 import com.example.concert_reservation.fixture.SeatFixture;
-import com.example.concert_reservation.interceptor.TokenInterceptor;
-import com.example.concert_reservation.manager.TokenManager;
-import com.example.concert_reservation.service.ConcertService;
+import com.example.concert_reservation.presentation.controller.ConcertController;
+import com.example.concert_reservation.presentation.interceptor.TokenInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,9 +46,6 @@ public class ConcertControllerUnitTest {
 
     @MockBean
     TokenInterceptor tokenInterceptor;
-
-    @MockBean
-    TokenManager tokenManager;
 
     @MockBean
     ConcertService concertService;

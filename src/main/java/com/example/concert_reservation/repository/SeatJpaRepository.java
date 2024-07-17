@@ -1,6 +1,6 @@
 package com.example.concert_reservation.repository;
 
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Seat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

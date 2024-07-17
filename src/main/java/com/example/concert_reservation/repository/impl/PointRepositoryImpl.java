@@ -1,9 +1,9 @@
 package com.example.concert_reservation.repository.impl;
 
 
-import com.example.concert_reservation.entity.Point;
+import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.repository.PointJpaRepository;
-import com.example.concert_reservation.service.repository.PointRepository;
+import com.example.concert_reservation.domain.service.repository.PointRepository;
 import org.springframework.stereotype.Repository;
 
 

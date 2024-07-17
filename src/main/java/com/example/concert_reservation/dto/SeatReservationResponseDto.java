@@ -1,7 +1,6 @@
 package com.example.concert_reservation.dto;
 
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Reservation;
 import lombok.Getter;
 import lombok.Setter;
 

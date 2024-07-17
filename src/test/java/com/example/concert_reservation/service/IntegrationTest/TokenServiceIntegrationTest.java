@@ -1,11 +1,11 @@
 package com.example.concert_reservation.service.IntegrationTest;
 
 
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
-import com.example.concert_reservation.service.TokenService;
-import com.example.concert_reservation.service.repository.TokenRepository;
-import com.example.concert_reservation.service.repository.UserRepository;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.entity.User;
+import com.example.concert_reservation.domain.service.TokenService;
+import com.example.concert_reservation.domain.service.repository.TokenRepository;
+import com.example.concert_reservation.domain.service.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,14 +180,14 @@ public class TokenServiceIntegrationTest {
         token3 = tokenRepository.save(token3);
 
         //when
-        boolean token1State = tokenService.checkTokenActivate(token1.getTokenKey());
-        boolean token2State = tokenService.checkTokenActivate(token2.getTokenKey());
-        boolean token3State = tokenService.checkTokenActivate(token3.getTokenKey());
+        token1 = tokenService.getTokenInfo(token1.getTokenKey());
+        token2 = tokenService.getTokenInfo(token2.getTokenKey());
+        token3 = tokenService.getTokenInfo(token3.getTokenKey());
 
         //then
-        assertEquals(false, token1State);
-        assertEquals(false, token2State);
-        assertEquals(true, token3State);
+        assertEquals(false, token1.getState());
+        assertEquals(false, token2.getState());
+        assertEquals(true, token3.getState());
 
     }
 }

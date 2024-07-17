@@ -1,7 +1,7 @@
 package com.example.concert_reservation.fixture;
 
-import com.example.concert_reservation.entity.Point;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Point;
+import com.example.concert_reservation.domain.entity.User;
 
 public class UserFixture {
     public static User createUser(Integer userId, String userName, Integer pointId, Long amount) {

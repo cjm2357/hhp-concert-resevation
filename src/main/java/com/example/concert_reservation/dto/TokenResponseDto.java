@@ -1,8 +1,6 @@
 package com.example.concert_reservation.dto;
 
-import com.example.concert_reservation.entity.Token;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import lombok.Builder;
+import com.example.concert_reservation.domain.entity.Token;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

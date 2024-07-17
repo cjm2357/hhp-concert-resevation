@@ -1,17 +1,17 @@
 package com.example.concert_reservation.service.IntegrationTest;
 
 
-import com.example.concert_reservation.entity.Payment;
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Payment;
+import com.example.concert_reservation.domain.entity.Reservation;
+import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.PaymentFixture;
 import com.example.concert_reservation.fixture.ReservationFixture;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.service.PaymentService;
-import com.example.concert_reservation.service.repository.PointRepository;
-import com.example.concert_reservation.service.repository.ReservationRepository;
-import com.example.concert_reservation.service.repository.SeatRepository;
-import com.example.concert_reservation.service.repository.UserRepository;
+import com.example.concert_reservation.domain.service.PaymentService;
+import com.example.concert_reservation.domain.service.repository.PointRepository;
+import com.example.concert_reservation.domain.service.repository.ReservationRepository;
+import com.example.concert_reservation.domain.service.repository.SeatRepository;
+import com.example.concert_reservation.domain.service.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

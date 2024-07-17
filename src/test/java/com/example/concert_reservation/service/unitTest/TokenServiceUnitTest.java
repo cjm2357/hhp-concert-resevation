@@ -1,11 +1,11 @@
 package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.TokenFixture;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.service.TokenService;
-import com.example.concert_reservation.service.repository.TokenRepository;
+import com.example.concert_reservation.domain.service.TokenService;
+import com.example.concert_reservation.domain.service.repository.TokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -99,6 +99,7 @@ public class TokenServiceUnitTest {
         Token searchedToken = new Token();
         searchedToken.setId(60);
         searchedToken.setTokenKey(UUID.randomUUID());
+        searchedToken.setState(Token.TokenState.WAITING);
         searchedToken.setCreatedTime(LocalDateTime.now().minusMinutes(1));
         searchedToken.setCreatedTime(LocalDateTime.now().plusMinutes(1));
 
@@ -114,20 +115,18 @@ public class TokenServiceUnitTest {
         Token expectedToken = new Token();
         expectedToken.setUser(user);
         expectedToken.setId(60);
-        expectedToken.setTokenKey(UUID.randomUUID());
+        expectedToken.setTokenKey(searchedToken.getTokenKey());
         expectedToken.setState(Token.TokenState.WAITING);
         expectedToken.setCreatedTime(LocalDateTime.now().minusMinutes(15));
         expectedToken.setExpiredTime(LocalDateTime.now().minusMinutes(5));
-
         when(tokenRepository.findByTokenKey(any())).thenReturn(searchedToken);
         when(tokenRepository.findByStateOrderById(any())).thenReturn(activatedTokens);
-        when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
         Token token = tokenService.getTokenStatusAndUpdate(searchedToken.getTokenKey());
 
         //then
-        assertEquals(60- 50, expectedToken.getOrder());
+        assertEquals(60- 50, token.getOrder());
         assertEquals(token.getTokenKey(), expectedToken.getTokenKey());
 
     }
