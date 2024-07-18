@@ -1,11 +1,13 @@
 package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.TokenFixture;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.service.TokenService;
-import com.example.concert_reservation.service.repository.TokenRepository;
+import com.example.concert_reservation.domain.service.TokenService;
+import com.example.concert_reservation.domain.service.repository.TokenRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -72,23 +74,6 @@ public class TokenServiceUnitTest {
     }
 
     @Test
-    void 유효하지않은_유저ID() {
-        //given
-        Integer userId = null;
-
-        //when
-        Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            tokenService.getToken(userId);
-        });
-
-
-        //then
-        assertEquals("유효하지않은 userId 입니다.", exception.getMessage().toString());
-
-
-    }
-
-    @Test
     void 토큰상태_조회_waiting() {
         //given
         Integer userId = 1;
@@ -99,6 +84,7 @@ public class TokenServiceUnitTest {
         Token searchedToken = new Token();
         searchedToken.setId(60);
         searchedToken.setTokenKey(UUID.randomUUID());
+        searchedToken.setState(Token.TokenState.WAITING);
         searchedToken.setCreatedTime(LocalDateTime.now().minusMinutes(1));
         searchedToken.setCreatedTime(LocalDateTime.now().plusMinutes(1));
 
@@ -114,20 +100,18 @@ public class TokenServiceUnitTest {
         Token expectedToken = new Token();
         expectedToken.setUser(user);
         expectedToken.setId(60);
-        expectedToken.setTokenKey(UUID.randomUUID());
+        expectedToken.setTokenKey(searchedToken.getTokenKey());
         expectedToken.setState(Token.TokenState.WAITING);
         expectedToken.setCreatedTime(LocalDateTime.now().minusMinutes(15));
         expectedToken.setExpiredTime(LocalDateTime.now().minusMinutes(5));
-
         when(tokenRepository.findByTokenKey(any())).thenReturn(searchedToken);
         when(tokenRepository.findByStateOrderById(any())).thenReturn(activatedTokens);
-        when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getTokenStatus(searchedToken.getTokenKey());
+        Token token = tokenService.getTokenStatusAndUpdate(searchedToken.getTokenKey());
 
         //then
-        assertEquals(60- 50, expectedToken.getOrder());
+        assertEquals(60- 50, token.getOrder());
         assertEquals(token.getTokenKey(), expectedToken.getTokenKey());
 
     }
@@ -152,7 +136,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.findByTokenKey(any())).thenReturn(curToken);
 
         //when
-        Token token = tokenService.getTokenStatus(curToken.getTokenKey());
+        Token token = tokenService.getTokenStatusAndUpdate(curToken.getTokenKey());
 
         //then
         assertEquals(0, token.getOrder());
@@ -161,15 +145,82 @@ public class TokenServiceUnitTest {
     }
 
     @Test
-    void 유효하지않은_토큰키() {
+    void 토큰상태_조회_실패_토큰정보_없음() {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+        Integer userId = 1;
+
+        User user = new User();
+        user.setId(userId);
+
+
+        Token expiredToken = new Token();
+        expiredToken.setUser(user);
+        expiredToken.setId(70);
+        expiredToken.setTokenKey(tokenKey);
+        expiredToken.setState(Token.TokenState.EXPIRED);
+        expiredToken.setCreatedTime(LocalDateTime.now().minusMinutes(15));
+        expiredToken.setExpiredTime(LocalDateTime.now().minusMinutes(5));
+        when(tokenRepository.findByTokenKey(any())).thenReturn(expiredToken);
 
         //when
-        Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            tokenService.getTokenStatus(null);
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.getTokenStatusAndUpdate(tokenKey);
         });
 
         //then
-        assertEquals("유효하지않은 토큰 key 입니다.", exception.getMessage().toString());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getMessage(), exception.getCustomExceptionCode().getMessage());
+
 
     }
+
+    @Test
+    void 토큰상태_조회_실패_토큰만료() {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+        when(tokenRepository.findByTokenKey(any())).thenReturn(null);
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.getTokenStatusAndUpdate(tokenKey);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
+        
+    }
+    
+    @Test
+    void 토큰정보가져오기_성공() {
+        //given
+        User user = UserFixture.createUser(1, "user1", 1, 1000l);
+        UUID tokenKey = UUID.randomUUID();
+        Token expectedToken = TokenFixture.createToken(1, user,tokenKey, LocalDateTime.now(), Token.TokenState.ACTIVATE);
+        when(tokenRepository.findByTokenKey(any())).thenReturn(expectedToken);
+
+        //when
+        Token token =  tokenService.getTokenInfo(tokenKey);
+
+        //then
+        assertEquals(expectedToken, token);
+    }
+
+    @Test
+    void 토큰정보가져오기_실패() {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+        when(tokenRepository.findByTokenKey(any())).thenReturn(null);
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenService.getTokenInfo(tokenKey);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
+    }
+
 }

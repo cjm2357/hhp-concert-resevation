@@ -1,9 +1,9 @@
 package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.entity.Concert;
+import com.example.concert_reservation.domain.entity.Concert;
 import com.example.concert_reservation.fixture.ConcertFixture;
-import com.example.concert_reservation.service.ConcertService;
-import com.example.concert_reservation.service.repository.ConcertRepository;
+import com.example.concert_reservation.domain.service.ConcertService;
+import com.example.concert_reservation.domain.service.repository.ConcertRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -57,4 +57,5 @@ public class ConcertServiceUnitTest {
         //then
         assertEquals(0, concertList.size());
     }
+
 }

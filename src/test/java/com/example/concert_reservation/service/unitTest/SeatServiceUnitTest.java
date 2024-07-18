@@ -1,19 +1,17 @@
 package com.example.concert_reservation.service.unitTest;
 
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.Seat;
-import com.example.concert_reservation.fixture.ReservationFixture;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
+import com.example.concert_reservation.domain.entity.Seat;
 import com.example.concert_reservation.fixture.SeatFixture;
-import com.example.concert_reservation.service.SeatService;
-import com.example.concert_reservation.service.repository.ReservationRepository;
-import com.example.concert_reservation.service.repository.SeatRepository;
+import com.example.concert_reservation.domain.service.SeatService;
+import com.example.concert_reservation.domain.service.repository.SeatRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,14 +26,42 @@ public class SeatServiceUnitTest {
     @Mock
     SeatRepository seatRepository;
 
-    @Mock
-    ReservationRepository reservationRepository;
-
     @InjectMocks
     SeatService seatService;
 
     @Test
-    void 예약가능한시트_조회_성공() {
+    void 시트ID로_시트_조회_성공() {
+        //given
+        Integer seatId = 1;
+        Seat expectedSeat = SeatFixture.createSeat(seatId, 1, seatId,1 ,Seat.State.EMPTY  ,10000l, "A");
+        when(seatRepository.findById(any())).thenReturn(expectedSeat);
+
+        //when
+        Seat seat = seatService.getSeatById(seatId);
+
+        //then
+        assertEquals(expectedSeat, seat);
+    }
+
+    @Test
+    void 시트ID로_시트_조회_실패_시트없음() {
+        //given
+        Integer seatId = 1;
+      
+        when(seatRepository.findById(any())).thenReturn(null);
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            seatService.getSeatById(seatId);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.SEAT_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.SEAT_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
+    }
+
+    @Test
+    void 스케쥴ID로_예약가능한시트_조회_성공() {
         //given
         Integer scheduleId = 1;
 
@@ -51,11 +77,13 @@ public class SeatServiceUnitTest {
         List<Seat> seats = seatService.getAvailableSeatList(scheduleId);
 
         //then
-        assertEquals(expectedSeats, seats);
+        assertEquals(2, seats.size());
+        assertEquals(Seat.State.EMPTY, seats.get(0).getState());
+        assertEquals(Seat.State.EMPTY, seats.get(1).getState());
     }
 
     @Test
-    void 예약가능한시트_조회_실패() {
+    void 스케쥴ID로_예약가능한시트_조회_실패() {
         //given
         Integer scheduleId = 1;
 
@@ -71,54 +99,43 @@ public class SeatServiceUnitTest {
         assertEquals(0, seats.size());
     }
 
+
     @Test
-    void 좌석예약_성공()  {
+    void 콘서트ID로_예약가능한_시트리스트_조회_성공 () {
         //given
-        Integer seatId = 1;
-        Integer userId = 1;
-        Reservation requestReservation = new Reservation();
-        requestReservation.setSeatId(seatId);
-        requestReservation.setUserId(userId);
+        Integer concertId = 1;
 
-        Seat expectedSeat = SeatFixture.createSeat(seatId, 1, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        List<Seat> expectedSeats = new ArrayList<>();
+        Seat seat1 = SeatFixture.createSeat(1, concertId, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, concertId, 1, 2, Seat.State.EMPTY, 1000l, "A");
+        expectedSeats.add(seat1);
+        expectedSeats.add(seat2);
 
-        Reservation expectedReservation =
-                ReservationFixture.creasteReservation(1, userId,1, seatId, 1, 1, Reservation.State.WAITING, expectedSeat.getPrice(), expectedSeat.getGrade(), LocalDateTime.now());
-
-
-//        when(reservationRepository.findBySeatIdWithLock(any())).thenReturn(null);
-        when(seatRepository.findById(any())).thenReturn(expectedSeat);
-        when(reservationRepository.save(any())).thenReturn(expectedReservation);
+        when(seatRepository.findByConcertIdAndState(any(), any())).thenReturn(expectedSeats);
 
         //when
-        Reservation reservation = seatService.reserveSeat(requestReservation);
-
+        List<Seat> seats = seatService.getAvailableSeatListByConcertId(concertId);
 
         //then
-        assertEquals(expectedReservation, reservation);
+        assertEquals(2, seats.size());
+        assertEquals(Seat.State.EMPTY, seats.get(0).getState());
+        assertEquals(Seat.State.EMPTY, seats.get(1).getState());
     }
 
     @Test
-    void 좌석예약_실패()  {
+    void 콘서트ID로_예약가능한_시트리스트_조회_실패 () {
         //given
-        Integer seatId = 1;
-        Integer userId = 1;
-        Reservation requestReservation = new Reservation();
-        requestReservation.setSeatId(seatId);
-        requestReservation.setUserId(userId);
+        Integer concertId = 1;
 
-        Reservation reservation =
-                ReservationFixture.creasteReservation(1, userId,1, seatId, 1, 1, Reservation.State.EXPIRED, 1000l, "A", LocalDateTime.now());
 
-        List<Reservation> expectedList = new ArrayList<>();
-        expectedList.add(reservation);
+        when(seatRepository.findByConcertIdAndState(any(), any())).thenReturn(new ArrayList<>());
 
-        when(reservationRepository.findReservedReservationBySeatId(any())).thenReturn(expectedList);
         //when
-        Throwable exception = assertThrows(RuntimeException.class, () -> {
-            seatService.reserveSeat(requestReservation);
-        });
+        List<Seat> seats = seatService.getAvailableSeatListByConcertId(concertId);
+
         //then
-        assertEquals("이미 예약된 정보가 있습니다.", exception.getMessage().toString());
+        assertEquals(0, seats.size());
     }
+
+
 }
