@@ -1,6 +1,6 @@
 package com.example.concert_reservation.repository;
 
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Seat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,5 +18,10 @@ public interface SeatJpaRepository extends JpaRepository<Seat, Integer> {
     @Transactional
     @Query("UPDATE Seat s SET s.state = :state WHERE s.id IN :seatIdList")
     void saveAllStateBySeatId(List<Integer> seatIdList, Seat.State state);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Seat s SET s.state = :state WHERE s.id = :seatId")
+    void saveSeatStateById(Integer seatId, Seat.State state);
 
 }

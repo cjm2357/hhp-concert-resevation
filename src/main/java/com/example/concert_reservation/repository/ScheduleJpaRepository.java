@@ -1,6 +1,6 @@
 package com.example.concert_reservation.repository;
 
-import com.example.concert_reservation.entity.Schedule;
+import com.example.concert_reservation.domain.entity.Schedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

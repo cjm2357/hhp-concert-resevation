@@ -1,6 +1,6 @@
 package com.example.concert_reservation.dto;
 
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.User;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +16,11 @@ public class UserPointResponseDto {
     public UserPointResponseDto(User user) {
         this.userId = user.getId();
         this.userName = user.getName();
-        this.amount = user.getPoint().getAmount();
+        if (user.getPoint() == null) {
+            this.amount = 0l;
+        } else {
+            this.amount = user.getPoint().getAmount();
+        }
     }
     
 }

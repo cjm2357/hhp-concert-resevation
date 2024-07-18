@@ -1,11 +1,10 @@
 package com.example.concert_reservation.repository.impl;
 
-import com.example.concert_reservation.entity.Token;
+import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.repository.TokenJpaRepository;
-import com.example.concert_reservation.service.repository.TokenRepository;
+import com.example.concert_reservation.domain.service.repository.TokenRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

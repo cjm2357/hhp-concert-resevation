@@ -1,8 +1,8 @@
 package com.example.concert_reservation.repository.impl;
 
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.repository.UserJpaRepository;
-import com.example.concert_reservation.service.repository.UserRepository;
+import com.example.concert_reservation.domain.service.repository.UserRepository;
 import org.springframework.stereotype.Repository;
 
 
@@ -15,8 +15,8 @@ public class UserRepositoryImpl implements UserRepository {
       this.userJpaRepository = userJpaRepository;
   }
 
-  public User findById (User user) {
-      return userJpaRepository.findById(user.getId()).orElse(null);
+  public User findById (Integer userId) {
+      return userJpaRepository.findById(userId).orElse(null);
   }
 
    public User save (User user) {

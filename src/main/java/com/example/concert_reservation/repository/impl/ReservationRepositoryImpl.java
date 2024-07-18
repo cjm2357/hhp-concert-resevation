@@ -1,11 +1,8 @@
 package com.example.concert_reservation.repository.impl;
 
-import com.example.concert_reservation.entity.Reservation;
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Reservation;
 import com.example.concert_reservation.repository.ReservationJpaRepository;
-import com.example.concert_reservation.repository.SeatJpaRepository;
-import com.example.concert_reservation.service.repository.ReservationRepository;
-import com.example.concert_reservation.service.repository.SeatRepository;
+import com.example.concert_reservation.domain.service.repository.ReservationRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
