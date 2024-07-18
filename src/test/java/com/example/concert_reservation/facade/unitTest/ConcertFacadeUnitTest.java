@@ -164,7 +164,7 @@ public class ConcertFacadeUnitTest {
     }
 
     @Test
-    void 예약가능한시트_조회_실패() {
+    void 예약가능한시트_조회_없음() {
         //given
         Integer scheduleId = 1;
 
@@ -216,9 +216,13 @@ public class ConcertFacadeUnitTest {
         when(seatService.getSeatById(any())).thenReturn(seatInfo);
         when(reservationService.reserveSeat(any())).thenReturn(null);
         //when
-        Reservation reservation = concertFacade.reserveSeat(seatId, userId);
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            concertFacade.reserveSeat(seatId, userId);
+        });
         //then
-        assertNull(reservation);
+        assertEquals(CustomExceptionCode.RESERVATION_FAILED.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.RESERVATION_FAILED.getMessage(), exception.getCustomExceptionCode().getMessage());
+
     }
 
     @Test
@@ -301,7 +305,7 @@ public class ConcertFacadeUnitTest {
 
 
     @Test
-    void 유저의_포인트정보_없음() {
+    void 결제실패_유저의_포인트정보_없음() {
         //given
         Payment requestPayment = new Payment();
         requestPayment.setUserId(1);
@@ -312,6 +316,7 @@ public class ConcertFacadeUnitTest {
 
 
         User expectUser = new User();
+        expectUser.setId(1);
 
         when(reservationService.getReservation(any())).thenReturn(expectedReservation);
         when(userService.getUser(any())).thenReturn(expectUser);
@@ -328,7 +333,7 @@ public class ConcertFacadeUnitTest {
     }
 
     @Test
-    void 유저의_포인트_부족() {
+    void 결제실패_유저의_포인트_부족() {
         //given
         Payment requestPayment = new Payment();
         requestPayment.setUserId(1);

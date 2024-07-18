@@ -31,13 +31,17 @@ public class TokenInterceptor implements HandlerInterceptor {
         } catch (IllegalArgumentException e) {
             log.warn("request failed, token key is invalid");
             throw new CustomException(CustomExceptionCode.INVALID_TOKEN_KEY);
-        }
-
-        if (tokenKey == null) {
+        } catch (NullPointerException e) {
             log.warn("request failed. token key is null");
             throw new CustomException(CustomExceptionCode.NO_TOKEN_KEY);
         }
+
         Token token = tokenFacade.getTokenInfo(tokenKey);
+
+        if (token == null) {
+            log.warn("Request failed. no token of {}", tokenKey);
+            throw new CustomException(CustomExceptionCode.TOKEN_NOT_FOUND);
+        }
 
         if (token.getState() != Token.TokenState.ACTIVATE) {
             log.warn("Request failed. status of token is {}", token.getState());

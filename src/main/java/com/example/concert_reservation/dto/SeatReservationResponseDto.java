@@ -32,6 +32,7 @@ public class SeatReservationResponseDto {
         this.seatNo = reservation.getSeatNo();
         this.seatGrade = reservation.getSeatGrade();
         this.price = reservation.getPrice();
+        this.state = reservation.getState();
         this.createdTime = reservation.getCreatedTime();
         this.expiredTime = reservation.getExpiredTime();
     }

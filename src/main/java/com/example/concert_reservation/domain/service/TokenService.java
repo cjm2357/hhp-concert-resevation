@@ -23,7 +23,6 @@ public class TokenService {
     }
 
 
-    @Transactional
     public Token getToken(Integer userId) {
 
         User user = new User();
@@ -53,13 +52,15 @@ public class TokenService {
         return token;
     }
 
-    @Transactional
     public Token getTokenStatusAndUpdate(UUID key) {
 
         Token token = tokenRepository.findByTokenKey(key);
         if (token == null) {
             log.warn("token not found of {} ", key);
             throw new CustomException(CustomExceptionCode.TOKEN_NOT_FOUND);
+        }
+        if (token.getState() == Token.TokenState.EXPIRED) {
+            throw new CustomException(CustomExceptionCode.TOKEN_NOT_VALID);
         }
         if (token.getState() == Token.TokenState.ACTIVATE) {
             token.setOrder(0);
@@ -70,6 +71,8 @@ public class TokenService {
         int order = calcOrder(token, activeTokens);
         if (order == 0) {
             token.setState(Token.TokenState.ACTIVATE);
+            //대기열을 지났을때 지금시간에서 유효시간 10분을 준다.
+            token.setExpiredTime(LocalDateTime.now().plusMinutes(Token.EXPIRED_TIME_TEN_MIN));
             tokenRepository.save(token);
         }
         token.setOrder(order);

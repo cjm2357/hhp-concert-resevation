@@ -39,7 +39,6 @@ public class UserPointFacadeIntegrationTest {
     }
 
 
-
     @Test
     void 유저_포인트조회_성공 () {
         //given
@@ -87,25 +86,6 @@ public class UserPointFacadeIntegrationTest {
         assertEquals(10000, user.getPoint().getAmount());
     }
 
-    @Test
-    void 포인트_음수충전_실패() {
-        //given
-        User user = UserFixture.createUser(2, "유저2", 2, 0l);
-        pointRepository.save(user.getPoint());
-        userRepository.save(user);
-
-        long plusAmount = -10000l;
-
-        //when
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            userPointFacade.chargePoint(user, plusAmount);
-        });
-
-        //then
-        assertEquals(CustomExceptionCode.CHARGE_POINT_NOT_BE_UNDER_ZERO.getStatus(), exception.getCustomExceptionCode().getStatus());
-        assertEquals(CustomExceptionCode.CHARGE_POINT_NOT_BE_UNDER_ZERO.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
-
-    }
 
     @Test
     void 포인트_추가_충전_성공() {

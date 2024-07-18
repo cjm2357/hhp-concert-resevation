@@ -1,6 +1,8 @@
 package com.example.concert_reservation.facade.integrationTest;
 
 import com.example.concert_reservation.application.TokenFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.repository.PointRepository;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -56,7 +59,23 @@ public class TokenFacadeIntegrationTest {
     }
 
     @Test
-    void 토큰상태변경및_조회() {
+    void 토큰발급_실패_유저() {
+        //given
+        Integer userId = -1;
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenFacade.getToken(userId);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.USER_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.USER_NOT_FOUND.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
+
+    }
+
+    @Test
+    void 토큰상태변경및_조회_성공() {
         //given
         Integer userId = 1;
         Token tokenInfo = tokenFacade.getToken(userId);
@@ -69,6 +88,42 @@ public class TokenFacadeIntegrationTest {
         assertEquals(token.getOrder(), 0);
 
     }
+
+    @Test
+    void 토큰상태변경및_조회_실패_토큰정보없음() {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenFacade.getTokenStatusAndUpdate(tokenKey);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
+
+    }
+
+    @Test
+    void 토큰상태변경및_조회_실패_만료된토큰() {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+        User user = userRepository.findById(1);
+        Token token = TokenFixture.createToken(null, user, tokenKey, LocalDateTime.now().minusMinutes(20), Token.TokenState.EXPIRED);
+        tokenRepository.save(token);
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            tokenFacade.getTokenStatusAndUpdate(tokenKey);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
+
+    }
+
 
     @Test
     void 토큰50개이상_대기번호_발급 () {

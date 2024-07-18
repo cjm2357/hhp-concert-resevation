@@ -1,13 +1,17 @@
 package com.example.concert_reservation.domain.service;
 
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.service.repository.ReservationRepository;
 import com.example.concert_reservation.domain.service.repository.SeatRepository;
 import com.example.concert_reservation.domain.entity.Seat;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Slf4j
 public class SeatService {
 
     private final SeatRepository seatRepository;
@@ -19,7 +23,12 @@ public class SeatService {
     }
 
     public Seat getSeatById(Integer seatId) {
-        return seatRepository.findById(seatId);
+        Seat seat = seatRepository.findById(seatId);
+        if (seat == null) {
+            log.warn("not found seat of {}", seatId);
+            throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);
+        }
+        return seat;
     }
 
     public List<Seat> getAvailableSeatList(Integer scheduleId) {

@@ -91,7 +91,7 @@ public class ConcertController {
             log.warn("no user id");
             throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
-        if (dto.getReservationId() == null && dto.getReservationId() < 0) {
+        if (dto.getReservationId() == null || dto.getReservationId() < 0) {
             log.warn("{} user is failed to pay, no reservation id", dto.getUserId());
             throw new CustomException(CustomExceptionCode.INVALID_RESERVATION_ID);
         }

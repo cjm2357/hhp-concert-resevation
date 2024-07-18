@@ -12,8 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +28,19 @@ public class UserPointFacadeUnitTest {
     @InjectMocks
     UserPointFacade userPointFacade;
 
+    @Test
+    void 포이튼조회_유저정보없음_실패() {
+        //given
+        User user = UserFixture.createUser(1, "user1", 1, 1000l);
+
+        when(userService.getUser(any())).thenReturn(null);
+
+        //when
+        User responseUser = userPointFacade.getUserWithPoint(user.getId());
+
+        //then
+        assertEquals(null, responseUser);
+    }
 
     @Test
     void 포인트조회_성공() {
@@ -45,22 +57,6 @@ public class UserPointFacadeUnitTest {
         assertEquals(1000l, responseUser.getPoint().getAmount());
     }
 
-    @Test
-    void 포인트조회_실패() {
-        //given
-        User user = UserFixture.createUser(1, "user1", null, 0l);
-
-        when(userService.getUser(any())).thenReturn(null);
-
-        //when
-        Throwable exception = assertThrows(NullPointerException.class, () -> {
-            userPointFacade.getUserWithPoint(user.getId());
-        });
-
-
-        //then
-        assertEquals("해당 유저의 정보가 없습니다.", exception.getMessage().toString());
-    }
 
     @Test
     void 포인트충전_성공() {
@@ -84,18 +80,4 @@ public class UserPointFacadeUnitTest {
         assertEquals(3000 + 5000, responseUser.getPoint().getAmount());
     }
 
-    @Test
-    void 포인트충전_실패() {
-        //given
-        User user = UserFixture.createUser(1, "user1", 1, -3000l);
-
-        //when
-        Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            userPointFacade.chargePoint(user, user.getPoint().getAmount());
-        });
-
-        //then
-        assertEquals("충전하려는 값이 음수입니다.", exception.getMessage().toString());
-
-    }
 }

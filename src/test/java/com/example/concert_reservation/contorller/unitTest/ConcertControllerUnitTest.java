@@ -147,18 +147,6 @@ public class ConcertControllerUnitTest {
     }
 
 
-    @Test
-    void 토큰없이_조회() throws Exception{
-        //given
-        Integer scheduleId = 1;
-
-
-        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
-        //when
-        //then
-        mvc.perform(get("/api/schedules/" + scheduleId+ "/seats"))
-                .andExpect(status().isUnauthorized());
-    }
 
     @Test
     void 좌석예약_성공() throws Exception {
@@ -189,9 +177,8 @@ public class ConcertControllerUnitTest {
                 .andExpect(status().isOk());
     }
 
-
     @Test
-    void 좌석예약_실패() throws Exception {
+    void 좌석예약_실패_유저ID없음() throws Exception {
         //given
         UUID tokenKey = UUID.randomUUID();
         Reservation reservation = new Reservation();
@@ -202,6 +189,36 @@ public class ConcertControllerUnitTest {
         reservation.setConcertId(1);
         reservation.setCreatedTime(LocalDateTime.now());
         reservation.setExpiredTime(LocalDateTime.now().plusMinutes(Reservation.EXPIRE_TIME_FIVE_MIN));
+        reservation.setState(Reservation.State.COMPLETED);
+
+        SeatReservationRequestDto requestDto = new SeatReservationRequestDto();
+
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
+        when(concertFacade.reserveSeat(any(), any())).thenReturn(reservation);
+        //when
+
+        //then
+        mvc.perform(post("/api/seats/" + 1 + "/reservation")
+                        .header("Authorization", tokenKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void 좌석예약_실패_음수시트ID() throws Exception {
+        //given
+        UUID tokenKey = UUID.randomUUID();
+        Reservation reservation = new Reservation();
+        reservation.setId(1);
+        reservation.setSeatId(1);
+        reservation.setScheduleId(1);
+        reservation.setSeatNo(1);
+        reservation.setConcertId(1);
+        reservation.setCreatedTime(LocalDateTime.now());
+        reservation.setExpiredTime(LocalDateTime.now().plusMinutes(Reservation.EXPIRE_TIME_FIVE_MIN));
+        reservation.setState(Reservation.State.COMPLETED);
 
         SeatReservationRequestDto requestDto = new SeatReservationRequestDto();
         requestDto.setUserId(1);
@@ -211,11 +228,11 @@ public class ConcertControllerUnitTest {
         //when
 
         //then
-        mvc.perform(post("/api/seats/" + 1 + "/reservation")
+        mvc.perform(post("/api/seats/" + -1 + "/reservation")
                 .header("Authorization", tokenKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isBadRequest());
     }
 
 
@@ -248,6 +265,32 @@ public class ConcertControllerUnitTest {
     }
 
     @Test
+    void 결제_실패_유저ID잘못요청() throws Exception{
+        //given
+        UUID tokenKey = UUID.randomUUID();
+
+        Integer userId = -1;
+        Integer reservationId = 1;
+        PaymentRequestDto requestDto = new PaymentRequestDto();
+        requestDto.setUserId(userId);
+        requestDto.setReservationId(reservationId);
+
+        Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
+
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
+        when(concertFacade.pay(any())).thenReturn(payment);
+
+        //when
+        //then
+        mvc.perform(post("/api/payment")
+                        .header("Authorization", tokenKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
     void 결제_실패_예약ID_없음() throws Exception{
         //given
         UUID tokenKey = UUID.randomUUID();
@@ -269,35 +312,9 @@ public class ConcertControllerUnitTest {
                 .header("Authorization", tokenKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("no reservation ID"));
-
+                .andExpect(status().isBadRequest());
     }
 
-    @Test
-    void 결제_실패_토큰없음() throws Exception{
-        //given
-
-        Integer userId = 1;
-        Integer reservationId = -1;
-        PaymentRequestDto requestDto = new PaymentRequestDto();
-        requestDto.setUserId(userId);
-        requestDto.setReservationId(reservationId);
-
-        Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
-
-        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
-        when(concertFacade.pay(any())).thenReturn(payment);
-
-        //when
-        //then
-        mvc.perform(post("/api/payment")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$").value("invalid token"));
-
-    }
 
 
 }

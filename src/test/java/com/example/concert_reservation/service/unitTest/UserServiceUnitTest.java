@@ -1,5 +1,7 @@
 package com.example.concert_reservation.service.unitTest;
 
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.UserFixture;
 import com.example.concert_reservation.domain.service.UserService;
@@ -11,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -38,14 +41,17 @@ public class UserServiceUnitTest {
     
     @Test
     void 유저_조회_실패() {
-        User expectedUser = UserFixture.createUser(1, "user1`", 1, 10000l);
-        when(userRepository.findById((any()))).thenReturn(expectedUser);
+        int userId = 1;
+        when(userRepository.findById((any()))).thenReturn(null);
 
         //when
-        User user = userService.getUser(expectedUser.getId());
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            userService.getUser(userId);
+        });
 
         //then
-        assertEquals(expectedUser, user);
+        assertEquals(CustomExceptionCode.USER_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.USER_NOT_FOUND.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
     }
 
     @Test

@@ -78,7 +78,7 @@ public class TokenControllerUnitTest {
 
     //userID없이 요청
     @Test
-    void 유저ID없이_요청() throws Exception{
+    void 토큰발급_유저ID없이_요청() throws Exception{
         //given
         TokenRequestDto requestDto = new TokenRequestDto();
 
@@ -87,9 +87,7 @@ public class TokenControllerUnitTest {
         mvc.perform(post("/api/token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("no user ID"));
-
+                .andExpect(status().isBadRequest());
     }
 
 
@@ -120,6 +118,28 @@ public class TokenControllerUnitTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.key").value(token.getTokenKey().toString()))
                 .andExpect(jsonPath("$.order").value(100));
+
+    }
+
+    @Test
+    void 토큰상태조회_토큰없이_실패() throws Exception{
+        //given
+        TokenRequestDto requestDto = new TokenRequestDto();
+        requestDto.setUserId(1);
+
+        UUID tokenKey = null;
+        User user = new User();
+        user.setId(1);
+        Token token = TokenFixture.createToken(1, user, tokenKey, LocalDateTime.now(), Token.TokenState.WAITING);
+        token.setOrder(100);
+        token.setTokenKey(tokenKey);
+
+        when(tokenFacade.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
+
+        //when
+        //then
+        mvc.perform(get("/api/token/status"))
+                .andExpect(status().isBadRequest());
 
     }
 

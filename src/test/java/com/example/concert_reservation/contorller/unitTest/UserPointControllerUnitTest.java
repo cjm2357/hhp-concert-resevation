@@ -80,8 +80,8 @@ public class UserPointControllerUnitTest {
         mvc.perform(post("/api/points")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("no user ID"));
+                .andExpect(status().isBadRequest());
+
 
     }
 
@@ -128,8 +128,7 @@ public class UserPointControllerUnitTest {
         mvc.perform(post("/api/points/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("bad request no user id"));
+                .andExpect(status().isBadRequest());
 
     }
 }

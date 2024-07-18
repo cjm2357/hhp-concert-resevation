@@ -189,6 +189,9 @@ public class ConcertFacadeIntegrationTest {
         Integer scheduleId = 1;
         Integer userId = 1;
         Integer userId2 = 2;
+        User user2 = UserFixture.createUser(userId2, "유저2", 2, 10000l);
+        pointRepository.save(user2.getPoint());
+        userRepository.save(user2);
         Integer seatId = 1;
         Integer concertId = 1;
 
@@ -214,10 +217,10 @@ public class ConcertFacadeIntegrationTest {
         Integer scheduleId = 1;
         Integer concertId = 1;
 
-        Seat seat1 =  SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
+        Seat seat1 = SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
         seat1 = seatRepository.save(seat1);
 
-        Seat seat2 =  SeatFixture.createSeat(null, concertId, scheduleId, 2, Seat.State.RESERVED, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(null, concertId, scheduleId, 2, Seat.State.RESERVED, 1000l, "A");
         seat2 = seatRepository.save(seat2);
 
         Reservation reservation1 =
@@ -266,7 +269,7 @@ public class ConcertFacadeIntegrationTest {
     }
 
     @Test
-    void 예약정보없음() {
+    void 결제실패_예약정보없음() {
         //given
         Integer userId = 1;
 
@@ -287,7 +290,7 @@ public class ConcertFacadeIntegrationTest {
 
 
     @Test
-    void 결제시간만료() {
+    void 결제시간만료_실패() {
         //given
         Integer userId = 1;
 
@@ -312,14 +315,12 @@ public class ConcertFacadeIntegrationTest {
 
 
     @Test
-    void 잔액부족() {
+    void 결제_잔액부족() {
         //given
         Integer userId = 1;
 
         Reservation reservation = ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.WAITING, 12000l, "A", LocalDateTime.now());
-
         reservation = reservationRepository.save(reservation);
-
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
 
         //when
@@ -334,6 +335,28 @@ public class ConcertFacadeIntegrationTest {
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
         assertEquals(Reservation.State.WAITING, reservation.getState());
+    }
+
+    @Test
+    void 결제실패_다른유저_결제시도() {
+        //given
+        Integer userId = 1;
+        Integer userId2 = 2;
+
+        Reservation reservation =
+                ReservationFixture.creasteReservation(null, userId2, 1, 1, 1, 1, Reservation.State.WAITING, 8000l, "A", LocalDateTime.now());
+        reservation = reservationRepository.save(reservation);
+
+        Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+
+        //when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            concertFacade.pay(payment);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.PAYMENT_DIFFERENT_USER.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.PAYMENT_DIFFERENT_USER.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
     }
 
 

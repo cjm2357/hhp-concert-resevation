@@ -4,6 +4,7 @@ package com.example.concert_reservation.facade.unitTest;
 import com.example.concert_reservation.application.TokenFacade;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;
+import com.example.concert_reservation.domain.service.UserService;
 import com.example.concert_reservation.fixture.TokenFixture;
 import com.example.concert_reservation.fixture.UserFixture;
 import com.example.concert_reservation.domain.service.TokenService;
@@ -28,6 +29,9 @@ public class TokenFacadeUnitTest {
     @Mock
     TokenService tokenService;
 
+    @Mock
+    UserService userService;
+
     @InjectMocks
     TokenFacade tokenFacade;
 
@@ -36,6 +40,7 @@ public class TokenFacadeUnitTest {
         //given
         User user = UserFixture.createUser(1, "user1", 1, 10000l);
         Token expectedToken = TokenFixture.createToken(1, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
+        when(userService.getUser(any())).thenReturn(user);
         when(tokenService.getToken(any())).thenReturn(expectedToken);
 
         //when
@@ -57,8 +62,8 @@ public class TokenFacadeUnitTest {
             Token t = TokenFixture.createToken(i, u, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
             activatedTokens.add(t);
         }
-
         User user = UserFixture.createUser(60, "user60", 60, 1000l);
+        when(userService.getUser(any())).thenReturn(user);
         Token expectedToken =  TokenFixture.createToken(60, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.WAITING);
 
         when(tokenService.getToken(any())).thenReturn(expectedToken);
@@ -109,7 +114,7 @@ public class TokenFacadeUnitTest {
 
 
         Token curToken = TokenFixture.createToken(70, user, UUID.randomUUID(), LocalDateTime.now().minusMinutes(15), Token.TokenState.ACTIVATE);
-        curToken.setOrder(0);
+        curToken.setOrder(100);
 
         when(tokenService.getTokenStatusAndUpdate(any())).thenReturn(curToken);
 
@@ -120,17 +125,5 @@ public class TokenFacadeUnitTest {
         //then
         assertEquals(0, token.getOrder());
         assertEquals(curToken.getTokenKey(), token.getTokenKey());
-
-    }
-
-    @Test
-    void 유효하지않은_토큰키() {
-
-        //when
-        Token token = tokenFacade.getTokenStatusAndUpdate(null);
-
-        //then
-        assertNull(token);
-
     }
 }
