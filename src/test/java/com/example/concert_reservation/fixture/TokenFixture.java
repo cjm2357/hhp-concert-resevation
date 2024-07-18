@@ -1,7 +1,7 @@
 package com.example.concert_reservation.fixture;
 
-import com.example.concert_reservation.entity.Token;
-import com.example.concert_reservation.entity.User;
+import com.example.concert_reservation.domain.entity.Token;
+import com.example.concert_reservation.domain.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

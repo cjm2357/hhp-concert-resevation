@@ -1,6 +1,6 @@
 package com.example.concert_reservation.fixture;
 
-import com.example.concert_reservation.entity.Seat;
+import com.example.concert_reservation.domain.entity.Seat;
 
 public class SeatFixture {
 

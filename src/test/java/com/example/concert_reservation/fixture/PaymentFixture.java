@@ -1,7 +1,6 @@
 package com.example.concert_reservation.fixture;
 
-import com.example.concert_reservation.entity.Concert;
-import com.example.concert_reservation.entity.Payment;
+import com.example.concert_reservation.domain.entity.Payment;
 
 import java.time.LocalDateTime;
 
