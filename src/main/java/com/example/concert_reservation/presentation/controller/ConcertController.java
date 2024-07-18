@@ -2,10 +2,11 @@ package com.example.concert_reservation.presentation.controller;
 
 
 import com.example.concert_reservation.application.ConcertFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.dto.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,14 +34,12 @@ public class ConcertController {
     public ResponseEntity<?> readSchedule(
             @PathVariable("concertId") Integer concertId) {
 
-        if (concertId != null && concertId >= 0) {
-            List<Schedule> schedules = concertFacade.getAvailableScheduleList(concertId);
-            return ResponseEntity.ok(new ScheduleResponseDto(schedules));
-        } else {
+        if (concertId == null || concertId < 0) {
             log.warn("read schedule bad request");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("no concert ID");
+            throw new CustomException(CustomExceptionCode.INVALID_CONCERT_ID);
         }
+        List<Schedule> schedules = concertFacade.getAvailableScheduleList(concertId);
+        return ResponseEntity.ok(new ScheduleResponseDto(schedules));
 
     }
 
@@ -49,13 +48,13 @@ public class ConcertController {
     public ResponseEntity<?> readSeat(
             @PathVariable("scheduleId") Integer scheduleId
     ) {
-        if (scheduleId != null && scheduleId > 0) {
-            List<Seat> seats = concertFacade.getAvailableSeatList(scheduleId);
-            return ResponseEntity.ok(new SeatResponseDto(seats));
-        }
-        log.warn("read seat bad request");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("no schedule ID");
+       if (scheduleId == null || scheduleId < 0) {
+           log.warn("read seat bad request");
+           throw new CustomException(CustomExceptionCode.INVALID_SCHEDULE_ID);
+
+       }
+        List<Seat> seats = concertFacade.getAvailableSeatList(scheduleId);
+        return ResponseEntity.ok(new SeatResponseDto(seats));
 
     }
 
@@ -64,17 +63,22 @@ public class ConcertController {
             @PathVariable("seatId") Integer seatId,
             @RequestBody SeatReservationRequestDto requestDto
     ) {
-        if (seatId != null && seatId > 0) {
-            Reservation reservation = new Reservation();
-            reservation.setUserId(requestDto.getUserId());
-            reservation.setSeatId(seatId);
-            reservation = concertFacade.reserveSeat(seatId, requestDto.getUserId());
-            SeatReservationResponseDto responseDto = new SeatReservationResponseDto(reservation);
-            return ResponseEntity.ok(responseDto);
+       if (requestDto.getUserId() == null || requestDto.getUserId() < 0) {
+           log.warn("no user id");
+           throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
+       }
+
+        if (seatId == null || seatId < 0) {
+            log.warn("{} user, reserve seat bad request", requestDto.getUserId());
+            throw new CustomException(CustomExceptionCode.INVALID_SEAT_ID);
         }
-        log.warn("{} user, reserve seat bad request", requestDto.getUserId());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("no seat ID");
+
+        Reservation reservation = new Reservation();
+        reservation.setUserId(requestDto.getUserId());
+        reservation.setSeatId(seatId);
+        reservation = concertFacade.reserveSeat(seatId, requestDto.getUserId());
+        SeatReservationResponseDto responseDto = new SeatReservationResponseDto(reservation);
+        return ResponseEntity.ok(responseDto);
 
     }
 
@@ -83,13 +87,17 @@ public class ConcertController {
     public ResponseEntity<?> pay(
             @RequestBody PaymentRequestDto dto
     ) {
-        if (dto.getReservationId() != null && dto.getReservationId() > 0) {
-            Payment payment = concertFacade.pay(dto.toEntity());
-            PaymentResponseDto responseDto = new PaymentResponseDto(payment);
-            return ResponseEntity.ok(responseDto);
+        if (dto.getUserId() == null || dto.getUserId() < 0) {
+            log.warn("no user id");
+            throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
-        log.warn("{} user is failed to pay, no reservation id", dto.getUserId());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("no reservation ID");
+        if (dto.getReservationId() == null && dto.getReservationId() < 0) {
+            log.warn("{} user is failed to pay, no reservation id", dto.getUserId());
+            throw new CustomException(CustomExceptionCode.INVALID_RESERVATION_ID);
+        }
+
+        Payment payment = concertFacade.pay(dto.toEntity());
+        PaymentResponseDto responseDto = new PaymentResponseDto(payment);
+        return ResponseEntity.ok(responseDto);
     }
 }

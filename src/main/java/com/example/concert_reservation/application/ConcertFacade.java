@@ -1,5 +1,7 @@
 package com.example.concert_reservation.application;
 
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +69,7 @@ public class ConcertFacade {
         Seat seatInfo = seatService.getSeatById(seatId);
         Reservation reservation = new Reservation();
         reservation.enrollSeatInfoForReservation(userId, seatInfo);
+        log.info("{} user success to reserve {} seat", userId, seatId);
         return reservationService.reserveSeat(reservation);
     }
 
@@ -75,22 +78,22 @@ public class ConcertFacade {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
         if (reservation == null) {
             log.warn("no reservation information");
-            throw new NullPointerException("예약 정보가 없습니다.");
+            throw new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND);
         }
         if (reservation.getState() == Reservation.State.EXPIRED || reservation.getExpiredTime().isBefore(LocalDateTime.now())) {
             log.warn("{} user, payment time expired", payment.getUserId());
-            throw new RuntimeException("결제 시간이 만료되었습니다.");
+            throw new CustomException(CustomExceptionCode.PAYMENT_TIME_EXPIRE);
         }
 
         User user = userService.getUser(payment.getUserId());
 
         if (user.getPoint() == null) {
             log.warn("{} user, no point information", user.getId());
-            throw new RuntimeException("유저의 포인트 정보가 없습니다.");
+            throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);
         }
         if (user.getPoint().getAmount() < reservation.getPrice()) {
             log.warn("{} user, points are less than the payment amount");
-            throw new RuntimeException("유저의 포인트가 결제금액보다 적습니다.");
+            throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
         }
 
         payment.setCreatedTime(LocalDateTime.now());
@@ -105,7 +108,7 @@ public class ConcertFacade {
         seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
         tokenService.updateStateToExpiredByUserId(user.getId());
-
+        log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
     }
 

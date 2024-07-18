@@ -39,7 +39,7 @@ public class Reservation {
         this.scheduleId = seat.getScheduleId();
         this.concertId = seat.getConcertId();
         this.seatNo = seat.getSeatNo();
-        this.seatGrade = getSeatGrade();
+        this.seatGrade = seat.getGrade();
         this.price = seat.getPrice();
         this.state = State.WAITING;
         this.createdTime = LocalDateTime.now();

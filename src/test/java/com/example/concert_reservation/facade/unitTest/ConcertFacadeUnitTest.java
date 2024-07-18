@@ -2,6 +2,8 @@ package com.example.concert_reservation.facade.unitTest;
 
 
 import com.example.concert_reservation.application.ConcertFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.*;
 import com.example.concert_reservation.fixture.*;
@@ -14,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -243,7 +246,7 @@ public class ConcertFacadeUnitTest {
         when(userService.getUser(any())).thenReturn(expectedUser);
         when(pointService.chargePoint(any())).thenReturn(expectedPoint);
         when(paymentService.pay(any())).thenReturn(expectedPayment);
-        when(seatService.saveSeatState(any(), any())).thenReturn(expectedSeat);
+//        when(seatService.saveSeatState(any(), any())).thenReturn(expectedSeat);
 
         //when
         Payment payment = concertFacade.pay(requestPayment);
@@ -265,11 +268,12 @@ public class ConcertFacadeUnitTest {
         when(reservationService.getReservation(any())).thenReturn(null);
 
         //when
-        Throwable exception = assertThrows(NullPointerException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             concertFacade.pay(requestPayment);
         });
         //then
-        assertEquals("예약 정보가 없습니다.", exception.getMessage().toString());
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
 
     }
 
@@ -286,11 +290,12 @@ public class ConcertFacadeUnitTest {
         when(reservationService.getReservation(any())).thenReturn(expectedReservation);
 
         //when
-        Throwable exception = assertThrows(RuntimeException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             concertFacade.pay(requestPayment);
         });
         //then
-        assertEquals("결제 시간이 만료되었습니다.", exception.getMessage().toString());
+        assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getMessage(), exception.getCustomExceptionCode().getMessage());
 
     }
 
@@ -313,11 +318,12 @@ public class ConcertFacadeUnitTest {
 
 
         //when
-        Throwable exception = assertThrows(RuntimeException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             concertFacade.pay(requestPayment);
         });
         //then
-        assertEquals("유저의 포인트 정보가 없습니다.", exception.getMessage().toString());
+        assertEquals(CustomExceptionCode.USER_POINT_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.USER_POINT_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
 
     }
 
@@ -339,11 +345,11 @@ public class ConcertFacadeUnitTest {
 
 
         //when
-        Throwable exception = assertThrows(RuntimeException.class, () -> {
+        CustomException exception = assertThrows(CustomException.class, () -> {
             concertFacade.pay(requestPayment);
         });
         //then
-        assertEquals("유저의 포인트가 결제금액보다 적습니다.", exception.getMessage().toString());
-
+        assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getMessage(), exception.getCustomExceptionCode().getMessage());
     }
 }

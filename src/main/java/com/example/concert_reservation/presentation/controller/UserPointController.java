@@ -1,6 +1,8 @@
 package com.example.concert_reservation.presentation.controller;
 
 import com.example.concert_reservation.application.UserPointFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.dto.UserPointRequestDto;
 import com.example.concert_reservation.dto.UserPointResponseDto;
 import com.example.concert_reservation.domain.entity.User;
@@ -31,8 +33,7 @@ public class UserPointController {
             return ResponseEntity.ok(new UserPointResponseDto(user));
         } else {
             log.warn("no user id");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("no user ID");
+            throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
     }
 
@@ -41,13 +42,12 @@ public class UserPointController {
     public ResponseEntity<?> chargePoint(@RequestBody UserPointRequestDto dto) {
         if (dto.getUserId() == null) {
             log.warn("no user id");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("bad request no user id");
+            throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
 
         if (dto.getAmount() ==null || dto.getAmount() <= 0) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("bad request invalid charge amount");
+            log.warn("request failed. charge point is under zero");
+            throw new CustomException(CustomExceptionCode.CHARGE_POINT_NOT_BE_UNDER_ZERO);
         }
 
         User user = userPointFacade.chargePoint(dto.toEntity(), dto.getAmount());

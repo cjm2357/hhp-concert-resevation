@@ -1,15 +1,15 @@
 package com.example.concert_reservation.presentation.interceptor;
 
 import com.example.concert_reservation.application.TokenFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Token;
-import com.example.concert_reservation.domain.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.security.sasl.AuthenticationException;
 import java.util.UUID;
 
 @Slf4j
@@ -24,12 +24,24 @@ public class TokenInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        UUID tokenKey = UUID.fromString(request.getHeader("Authorization"));
+
+        UUID tokenKey = null;
+        try {
+            tokenKey = UUID.fromString(request.getHeader("Authorization"));
+        } catch (IllegalArgumentException e) {
+            log.warn("request failed, token key is invalid");
+            throw new CustomException(CustomExceptionCode.INVALID_TOKEN_KEY);
+        }
+
+        if (tokenKey == null) {
+            log.warn("request failed. token key is null");
+            throw new CustomException(CustomExceptionCode.NO_TOKEN_KEY);
+        }
         Token token = tokenFacade.getTokenInfo(tokenKey);
 
         if (token.getState() != Token.TokenState.ACTIVATE) {
-            log.info("Request failed. status of token is {}", token.getState());
-            throw new AuthenticationException("Token이 " + token.getState() + " 상태입니다.");
+            log.warn("Request failed. status of token is {}", token.getState());
+            throw new CustomException(CustomExceptionCode.TOKEN_NOT_VALID);
         }
 
         return true;

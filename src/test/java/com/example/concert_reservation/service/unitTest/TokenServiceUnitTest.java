@@ -72,23 +72,6 @@ public class TokenServiceUnitTest {
     }
 
     @Test
-    void 유효하지않은_유저ID() {
-        //given
-        Integer userId = null;
-
-        //when
-        Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            tokenService.getToken(userId);
-        });
-
-
-        //then
-        assertEquals("유효하지않은 userId 입니다.", exception.getMessage().toString());
-
-
-    }
-
-    @Test
     void 토큰상태_조회_waiting() {
         //given
         Integer userId = 1;
@@ -159,16 +142,4 @@ public class TokenServiceUnitTest {
 
     }
 
-    @Test
-    void 유효하지않은_토큰키() {
-
-        //when
-        Throwable exception = assertThrows(IllegalArgumentException.class, () -> {
-            tokenService.getTokenStatusAndUpdate(null);
-        });
-
-        //then
-        assertEquals("유효하지않은 토큰 key 입니다.", exception.getMessage().toString());
-
-    }
 }

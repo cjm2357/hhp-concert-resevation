@@ -19,7 +19,4 @@ public class ConcertService {
         return concertRepository.findAll();
     }
 
-    public Concert saveConcert(Concert concert) {
-        return concertRepository.save(concert);
-    }
 }

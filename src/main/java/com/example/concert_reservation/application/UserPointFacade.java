@@ -25,24 +25,17 @@ public class UserPointFacade {
 
     public User getUserWithPoint(Integer userId) {
         User user = userService.getUser(userId);
-        if (user == null) {
-            log.warn("{} user id not found", userId);
-            throw new CustomException(CustomExceptionCode.USER_NOT_FOUND);
-        }
         return user;
     }
 
     @Transactional
     public User chargePoint(User user, Long amount) {
-        if (amount < 0 ) {
-            log.warn("{} user, The value you are trying to charge is negative.", user.getId());
-            throw new CustomException(CustomExceptionCode.CHARGE_POINT_NOT_BE_UNDER_ZERO);
-        }
         Point point = pointService.getPointByUserIdWithLock(user.getId());
         point.setAmount(point.getAmount() + amount);
         point = pointService.chargePoint(point);
         user.setPoint(point);
         user = userService.save(user);
+        log.info("{} user charge {} point", user.getId(), amount);
         return user;
     }
 

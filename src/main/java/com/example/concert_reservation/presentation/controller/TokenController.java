@@ -1,6 +1,8 @@
 package com.example.concert_reservation.presentation.controller;
 
 import com.example.concert_reservation.application.TokenFacade;
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.dto.TokenRequestDto;
 import com.example.concert_reservation.dto.TokenResponseDto;
 import com.example.concert_reservation.domain.entity.Token;
@@ -27,7 +29,7 @@ public class TokenController {
     public ResponseEntity<?> createToken(@RequestBody TokenRequestDto dto) {
         if (dto.getUserId() == null)  {
             log.warn("no user id");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("no user ID");
+            throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
 
         Token token = tokenFacade.getToken(dto.getUserId());
@@ -47,8 +49,7 @@ public class TokenController {
             return ResponseEntity.ok(responseDto);
         } else {
             log.warn("no token key or invalid token");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("invalid token");
+            throw new CustomException(CustomExceptionCode.INVALID_TOKEN_KEY);
         }
     }
 }

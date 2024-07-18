@@ -56,6 +56,7 @@ public class ConcertControllerUnitTest {
     @Test
     void 콘서트리스트_조회_성공 () throws Exception {
         //given
+        UUID tokenKey = UUID.randomUUID();
         List<Concert> concertList = new ArrayList<>();
         Concert concert1 = ConcertFixture.createConcert(1, "아이유 콘서트");
         Concert concert2 = ConcertFixture.createConcert(2, "박효신 콘서트");
@@ -64,9 +65,11 @@ public class ConcertControllerUnitTest {
         concertList.add(concert2);
 
         when(concertFacade.getConcertList()).thenReturn(concertList);
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         //when
         //then
-        mvc.perform(get("/api/concerts"))
+        mvc.perform(get("/api/concerts")
+                .header("Authorization", tokenKey))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.concertList.size()").value(2));
     }
@@ -83,7 +86,7 @@ public class ConcertControllerUnitTest {
         expectedSchedules.add(schedule2);
 
         when(concertFacade.getAvailableScheduleList(any())).thenReturn(expectedSchedules);
-
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         //when
         //then
         mvc.perform(get("/api/concerts/"+ 1 +"/schedules")
@@ -98,6 +101,7 @@ public class ConcertControllerUnitTest {
         //given
         Integer concertId = -1;
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         //when
         //then
         mvc.perform(get("/api/concerts/"+ concertId + "/schedules"))
@@ -117,6 +121,7 @@ public class ConcertControllerUnitTest {
 
         UUID tokenKey = UUID.randomUUID();
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.getAvailableSeatList(any())).thenReturn(expectedSeats);
 
         //when
@@ -133,7 +138,7 @@ public class ConcertControllerUnitTest {
         //given
         Integer scheduleId = -1;
         UUID tokenKey = UUID.randomUUID();
-
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         //when
         //then
         mvc.perform(get("/api/schedules/" + scheduleId + "/seats")
@@ -148,6 +153,7 @@ public class ConcertControllerUnitTest {
         Integer scheduleId = 1;
 
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         //when
         //then
         mvc.perform(get("/api/schedules/" + scheduleId+ "/seats"))
@@ -171,6 +177,7 @@ public class ConcertControllerUnitTest {
         SeatReservationRequestDto requestDto = new SeatReservationRequestDto();
         requestDto.setUserId(1);
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.reserveSeat(any(), any())).thenReturn(reservation);
         //when
 
@@ -186,7 +193,7 @@ public class ConcertControllerUnitTest {
     @Test
     void 좌석예약_실패() throws Exception {
         //given
-
+        UUID tokenKey = UUID.randomUUID();
         Reservation reservation = new Reservation();
         reservation.setId(1);
         reservation.setSeatId(1);
@@ -199,11 +206,13 @@ public class ConcertControllerUnitTest {
         SeatReservationRequestDto requestDto = new SeatReservationRequestDto();
         requestDto.setUserId(1);
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.reserveSeat(any(), any())).thenReturn(reservation);
         //when
 
         //then
         mvc.perform(post("/api/seats/" + 1 + "/reservation")
+                .header("Authorization", tokenKey)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isUnauthorized());
@@ -223,6 +232,7 @@ public class ConcertControllerUnitTest {
 
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.pay(any())).thenReturn(payment);
 
         //when
@@ -250,6 +260,7 @@ public class ConcertControllerUnitTest {
 
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.pay(any())).thenReturn(payment);
 
         //when
@@ -275,6 +286,7 @@ public class ConcertControllerUnitTest {
 
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
+        when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
         when(concertFacade.pay(any())).thenReturn(payment);
 
         //when

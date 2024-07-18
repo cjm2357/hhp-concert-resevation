@@ -28,8 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 public class UserPointControllerUnitTest {
 
-
-
     @Autowired
     MockMvc mvc;
 
@@ -131,7 +129,7 @@ public class UserPointControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("bad request"));
+                .andExpect(jsonPath("$").value("bad request no user id"));
 
     }
 }

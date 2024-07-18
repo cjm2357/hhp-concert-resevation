@@ -1,8 +1,11 @@
 package com.example.concert_reservation.domain.service;
 
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.service.repository.TokenRepository;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class TokenService {
 
     private final TokenRepository tokenRepository;
@@ -21,10 +25,6 @@ public class TokenService {
 
     @Transactional
     public Token getToken(Integer userId) {
-
-        if (userId == null) {
-            throw new IllegalArgumentException("유효하지않은 userId 입니다.");
-        }
 
         User user = new User();
         user.setId(userId);
@@ -41,9 +41,7 @@ public class TokenService {
 
         token = tokenRepository.save(token);
 
-
         List<Token> activeTokens = tokenRepository.findByStateOrderById(Token.TokenState.ACTIVATE);
-
 
         int order = calcOrder(token, activeTokens);
         if (order == 0) {
@@ -52,19 +50,17 @@ public class TokenService {
         }
         token.setOrder(order);
 
-
         return token;
-
     }
 
     @Transactional
     public Token getTokenStatusAndUpdate(UUID key) {
 
-        if (key == null) {
-            throw new IllegalArgumentException("유효하지않은 토큰 key 입니다.");
-        }
-
         Token token = tokenRepository.findByTokenKey(key);
+        if (token == null) {
+            log.warn("token not found of {} ", key);
+            throw new CustomException(CustomExceptionCode.TOKEN_NOT_FOUND);
+        }
         if (token.getState() == Token.TokenState.ACTIVATE) {
             token.setOrder(0);
             return token;
@@ -84,7 +80,10 @@ public class TokenService {
 
     public Token getTokenInfo(UUID tokenKey) {
         Token token = tokenRepository.findByTokenKey(tokenKey);
-        if (token == null) throw new RuntimeException("토큰 정보가 없습니다.");
+        if (token == null) {
+            log.warn("token not found of {} ", tokenKey);
+            throw new CustomException(CustomExceptionCode.TOKEN_NOT_FOUND);
+        }
         return token;
     }
 
