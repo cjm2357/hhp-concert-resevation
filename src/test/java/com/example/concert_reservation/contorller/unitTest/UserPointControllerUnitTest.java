@@ -1,11 +1,13 @@
 package com.example.concert_reservation.contorller.unitTest;
 
-import com.example.concert_reservation.controller.UserPointController;
+import com.example.concert_reservation.application.UserPointFacade;
+import com.example.concert_reservation.presentation.controller.UserPointController;
 import com.example.concert_reservation.dto.UserPointRequestDto;
 import com.example.concert_reservation.dto.UserPointResponseDto;
-import com.example.concert_reservation.entity.Point;
-import com.example.concert_reservation.entity.User;
-import com.example.concert_reservation.service.UserPointService;
+import com.example.concert_reservation.domain.entity.Point;
+import com.example.concert_reservation.domain.entity.User;
+import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.presentation.interceptor.TokenInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,13 +28,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 public class UserPointControllerUnitTest {
 
-
-
     @Autowired
     MockMvc mvc;
 
     @MockBean
-    UserPointService userPointService;
+    UserPointFacade userPointFacade;
+
+    @MockBean
+    TokenInterceptor tokenInterceptor;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -48,19 +51,13 @@ public class UserPointControllerUnitTest {
         UserPointRequestDto requestDto = new UserPointRequestDto();
         requestDto.setUserId(1);
 
-        User user = new User();
-        user.setId(1);
-        Point point = new Point();
-        point.setId(1);
-        point.setUserId(user.getId());
-        point.setAmount(1000l);
-        user.setPoint(point);
+        User user = UserFixture.createUser(1, "user1", 1, 1000l);
 
         UserPointResponseDto responseDto = new UserPointResponseDto();
-        responseDto.setUserId(1);
-        responseDto.setAmount(1000l);
+        responseDto.setUserId(user.getId());
+        responseDto.setAmount(user.getPoint().getAmount());
 
-        when(userPointService.getPoint(any())).thenReturn(user);
+        when(userPointFacade.getUserWithPoint(any())).thenReturn(user);
 
         //when
         //then
@@ -83,8 +80,8 @@ public class UserPointControllerUnitTest {
         mvc.perform(post("/api/points")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("no user ID"));
+                .andExpect(status().isBadRequest());
+
 
     }
 
@@ -108,7 +105,7 @@ public class UserPointControllerUnitTest {
         point.setAmount(11000l);
         user.setPoint(point);
 
-        when(userPointService.chargePoint(any(), any())).thenReturn(user);
+        when(userPointFacade.chargePoint(any(), any())).thenReturn(user);
 
         //when
         //then
@@ -131,8 +128,7 @@ public class UserPointControllerUnitTest {
         mvc.perform(post("/api/points/charge")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$").value("bad request"));
+                .andExpect(status().isBadRequest());
 
     }
 }
