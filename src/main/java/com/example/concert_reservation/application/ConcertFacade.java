@@ -95,7 +95,6 @@ public class ConcertFacade {
 
         User user = userService.getUser(payment.getUserId());
         if (user.getId() != reservation.getUserId()) {
-            System.out.println("SA");
             log.warn("try payment different user");
             throw new CustomException(CustomExceptionCode.PAYMENT_DIFFERENT_USER);
         }
