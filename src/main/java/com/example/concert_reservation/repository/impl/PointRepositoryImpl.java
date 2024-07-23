@@ -4,10 +4,12 @@ package com.example.concert_reservation.repository.impl;
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.repository.PointJpaRepository;
 import com.example.concert_reservation.domain.service.repository.PointRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 
 @Repository
+@Slf4j
 public class PointRepositoryImpl implements PointRepository {
 
     private final PointJpaRepository pointJpaRepository;
@@ -26,6 +28,7 @@ public class PointRepositoryImpl implements PointRepository {
     }
     @Override
     public Point save(Point point) {
+        log.info(Thread.currentThread().getName() + ">> Lock 종료 ><");
        return pointJpaRepository.save(point);
     }
 }

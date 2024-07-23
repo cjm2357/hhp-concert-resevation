@@ -7,6 +7,7 @@ import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.PointService;
 import com.example.concert_reservation.domain.service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +31,13 @@ public class UserPointFacade {
 
     @Transactional
     public User chargePoint(User user, Long amount) {
+
         Point point = pointService.getPointByUserIdWithLock(user.getId());
         point.setAmount(point.getAmount() + amount);
         point = pointService.chargePoint(point);
         user.setPoint(point);
-        user = userService.save(user);
         log.info("{} user charge {} point", user.getId(), amount);
+
         return user;
     }
 

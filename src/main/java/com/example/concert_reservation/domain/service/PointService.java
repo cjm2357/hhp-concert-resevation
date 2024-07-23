@@ -24,6 +24,7 @@ public class PointService {
 
     public Point getPointByUserIdWithLock(Integer userId) {
         Point point =  pointRepository.findByUserIdWithLock(userId);
+        log.info(Thread.currentThread().getName() + ">> Lock 시작 ><");
         if (point == null) {
             log.warn("{} user point not found", userId);
             throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);

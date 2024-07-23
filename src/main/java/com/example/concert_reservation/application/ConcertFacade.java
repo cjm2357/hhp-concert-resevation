@@ -4,6 +4,7 @@ import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,9 +65,17 @@ public class ConcertFacade {
         return seatService.getAvailableSeatList(scheduleId);
     }
 
-    @Transactional
+//    @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
         User user = userService.getUser(userId);
+//        Seat seatInfo = seatService.getSeatById(seatId);
+        Reservation reservation = enrollSeatAndState(seatId, userId);
+        log.info("{} user success to reserve {} seat", userId, seatId);
+        return reservation;
+    }
+
+    @Transactional
+    public Reservation enrollSeatAndState(Integer seatId, Integer userId) {
         Seat seatInfo = seatService.getSeatById(seatId);
         Reservation reservation = new Reservation();
         reservation.enrollSeatInfoForReservation(userId, seatInfo);
@@ -76,7 +85,6 @@ public class ConcertFacade {
             throw new CustomException(CustomExceptionCode.RESERVATION_FAILED);
         }
         seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
-        log.info("{} user success to reserve {} seat", userId, seatId);
         return reservation;
     }
 

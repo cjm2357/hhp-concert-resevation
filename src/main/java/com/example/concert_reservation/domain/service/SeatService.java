@@ -23,7 +23,8 @@ public class SeatService {
     }
 
     public Seat getSeatById(Integer seatId) {
-        Seat seat = seatRepository.findById(seatId);
+//        Seat seat = seatRepository.findById(seatId);
+        Seat seat = seatRepository.findByIdWithLock(seatId);
         if (seat == null) {
             log.warn("not found seat of {}", seatId);
             throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);

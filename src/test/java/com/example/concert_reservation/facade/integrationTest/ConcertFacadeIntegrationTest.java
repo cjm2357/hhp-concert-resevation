@@ -8,12 +8,17 @@ import com.example.concert_reservation.domain.service.repository.*;
 import com.example.concert_reservation.fixture.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,6 +46,8 @@ public class ConcertFacadeIntegrationTest {
 
     @Autowired
     PointRepository pointRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(ConcertFacadeIntegrationTest.class);
 
     @BeforeEach
     void init() {
@@ -357,6 +364,55 @@ public class ConcertFacadeIntegrationTest {
         //then
         assertEquals(CustomExceptionCode.PAYMENT_DIFFERENT_USER.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.PAYMENT_DIFFERENT_USER.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
+    }
+    
+    @Test
+    void 시트_예약_동시성_테스트() throws Exception{
+        //given
+        int threadCount = 10;
+        int userId = 1;
+        Seat seat = SeatFixture.createSeat(1, 1, 1, 1, Seat.State.EMPTY, 10000l, "A");
+        seatRepository.save(seat);
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), userId, countDownLatch)))
+                .limit(threadCount) // 쓰레드를  생성
+                .collect(Collectors.toList());
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("포인트 충전 동시성테스트 5번 run time : {}", endTime - startTime);
+
+        Reservation reservation = reservationRepository.findById(1);
+        Reservation reservation1 = reservationRepository.findById(2);
+        System.out.println("reservation1.getSeatId() = " + reservation.getSeatId());
+        System.out.println("reservation1.getSeatId() = " + reservation1.getSeatId());
+    }
+
+
+    private class ReserveSeatRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+        private Integer seatId;
+        private Integer userId;
+
+        public ReserveSeatRunner(Integer seatId, Integer userId, CountDownLatch countDownLatch) {
+            this.seatId = seatId;
+            this.userId = userId;
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                concertFacade.reserveSeat(seatId, userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
     }
 
 
