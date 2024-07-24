@@ -92,45 +92,27 @@ public class ConcertFacade {
     @Transactional
     public Payment pay(Payment payment) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
-        if (reservation == null) {
-            log.warn("no reservation information");
-            throw new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND);
-        }
-        if (reservation.getState() == Reservation.State.EXPIRED || reservation.getExpiredTime().isBefore(LocalDateTime.now())) {
-            log.warn("{} user, payment time expired", payment.getUserId());
-            throw new CustomException(CustomExceptionCode.PAYMENT_TIME_EXPIRE);
-        }
+        reservation.isNotExpired();
 
         User user = userService.getUser(payment.getUserId());
-
-        if (user.getId() != reservation.getUserId()) {
-            log.warn("try payment different user");
-            throw new CustomException(CustomExceptionCode.PAYMENT_DIFFERENT_USER);
-        }
-
-        if (user.getPoint() == null) {
-            log.warn("{} user, no point information", user.getId());
-            throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);
-        }
-        if (user.getPoint().getAmount() < reservation.getPrice()) {
-            log.warn("{} user, points are less than the payment amount");
-            throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
-        }
-
-        //lock 적용범위
+        user.isReservationUser(reservation.getUserId());
+        user.isPayable(reservation.getPrice());
+        
         payment.setCreatedTime(LocalDateTime.now());
         payment = paymentService.pay(payment);
 
+        
+        //lock적용범위
         Point userPoint = user.getPoint();
         userPoint.setAmount(userPoint.getAmount() - reservation.getPrice());
         pointService.chargePoint(userPoint);
+        //lock적용범위
 
         reservation.setState(Reservation.State.COMPLETED);
         reservationService.changeReservationInfo(reservation);
-        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+//        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
         tokenService.updateStateToExpiredByUserId(user.getId());
-        //lock적용범위
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
     }

@@ -1,14 +1,18 @@
 package com.example.concert_reservation.domain.entity;
 
+import com.example.concert_reservation.config.exception.CustomException;
+import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
+@Slf4j
 public class Reservation {
 
     public enum State {
@@ -44,5 +48,12 @@ public class Reservation {
         this.state = State.WAITING;
         this.createdTime = LocalDateTime.now();
         this.expiredTime = LocalDateTime.now().plusMinutes(EXPIRE_TIME_FIVE_MIN);
+    }
+
+    public void isNotExpired() {
+        if (state == Reservation.State.EXPIRED || expiredTime.isBefore(LocalDateTime.now())) {
+            log.warn("{} user, payment time expired", userId);
+            throw new CustomException(CustomExceptionCode.PAYMENT_TIME_EXPIRE);
+        }
     }
 }
