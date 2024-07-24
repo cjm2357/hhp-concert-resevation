@@ -68,7 +68,6 @@ public class ConcertFacade {
 //    @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
         User user = userService.getUser(userId);
-//        Seat seatInfo = seatService.getSeatById(seatId);
         Reservation reservation = enrollSeatAndState(seatId, userId);
         log.info("{} user success to reserve {} seat", userId, seatId);
         return reservation;
@@ -84,9 +83,11 @@ public class ConcertFacade {
             log.warn("failed reservation");
             throw new CustomException(CustomExceptionCode.RESERVATION_FAILED);
         }
-        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+        seatInfo.setState(Seat.State.RESERVED);
+        seatService.updateSeat(seatInfo);
         return reservation;
     }
+    //        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
     @Transactional
     public Payment pay(Payment payment) {
@@ -100,8 +101,8 @@ public class ConcertFacade {
             throw new CustomException(CustomExceptionCode.PAYMENT_TIME_EXPIRE);
         }
 
-
         User user = userService.getUser(payment.getUserId());
+
         if (user.getId() != reservation.getUserId()) {
             log.warn("try payment different user");
             throw new CustomException(CustomExceptionCode.PAYMENT_DIFFERENT_USER);

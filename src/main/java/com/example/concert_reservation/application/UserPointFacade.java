@@ -1,13 +1,10 @@
 package com.example.concert_reservation.application;
 
-import com.example.concert_reservation.config.exception.CustomException;
-import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.PointService;
 import com.example.concert_reservation.domain.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -24,4 +24,8 @@ public class Seat {
     private State state;
     private Long price;
     private String grade;
+
+
+//    @Version
+//    private int version;
 }
