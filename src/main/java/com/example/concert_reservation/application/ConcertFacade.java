@@ -65,7 +65,7 @@ public class ConcertFacade {
         return seatService.getAvailableSeatList(scheduleId);
     }
 
-//    @Transactional
+    @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
         User user = userService.getUser(userId);
         Reservation reservation = enrollSeatAndState(seatId, userId);
@@ -117,6 +117,7 @@ public class ConcertFacade {
             throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
         }
 
+        //lock 적용범위
         payment.setCreatedTime(LocalDateTime.now());
         payment = paymentService.pay(payment);
 
@@ -129,6 +130,7 @@ public class ConcertFacade {
         seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
         tokenService.updateStateToExpiredByUserId(user.getId());
+        //lock적용범위
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
     }

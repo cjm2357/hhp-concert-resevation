@@ -369,7 +369,7 @@ public class ConcertFacadeIntegrationTest {
     @Test
     void 시트_예약_동시성_테스트() throws Exception{
         //given
-        int threadCount = 1;
+        int threadCount = 100;
         int userId = 1;
         Seat seat = SeatFixture.createSeat(1, 1, 1, 1, Seat.State.EMPTY, 10000l, "A");
         seatRepository.save(seat);
@@ -384,7 +384,7 @@ public class ConcertFacadeIntegrationTest {
         workers.forEach(Thread::start); // 모든 쓰레드 시작
         countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
         long endTime = System.currentTimeMillis();
-        logger.info("시트 예약 동시성테스트 5번 run time : {}", endTime - startTime);
+        logger.info("시트 예약 동시성테스트 100번 run time : {}", endTime - startTime);
 
         Reservation reservation = reservationRepository.findById(1);
 

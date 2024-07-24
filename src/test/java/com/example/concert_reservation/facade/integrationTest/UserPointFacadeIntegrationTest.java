@@ -113,7 +113,7 @@ public class UserPointFacadeIntegrationTest {
     @Test
     public void 포인트_충전_동시성_테스트 () throws Exception {
         //given
-        int threadCount = 5;
+        int threadCount = 100;
         //user id : 1, point : 10000;
         User user = userRepository.findById(1);
         long point = 1000l;
@@ -127,14 +127,13 @@ public class UserPointFacadeIntegrationTest {
         workers.forEach(Thread::start); // 모든 쓰레드 시작
         countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
         long endTime = System.currentTimeMillis();
-        logger.info("포인트 충전 동시성테스트 5번 run time : {}", endTime - startTime);
+        logger.info("포인트 충전 동시성테스트 100번 run time : {}", endTime - startTime);
 
         User result = userRepository.findById(1);
         logger.info("user point :: {}", result.getPoint().getAmount());
-        assertEquals(10000 + 1000, user.getPoint().getAmount());
+        assertEquals(10000 + (1000 * threadCount), user.getPoint().getAmount());
 
     }
-
 
 
 
@@ -142,6 +141,8 @@ public class UserPointFacadeIntegrationTest {
         private CountDownLatch countDownLatch;
         private User user;
         private Long point;
+
+        private static int retryCnt =0;
 
         public PointChargeRunner(User user, long point, CountDownLatch countDownLatch) {
             this.user = user;
@@ -155,8 +156,18 @@ public class UserPointFacadeIntegrationTest {
                 userPointFacade.chargePoint(user, point);
             } catch (Exception e) {
                 e.printStackTrace();
+                retryCnt++;
+                try {
+                    Thread.sleep(1000);
+                    userPointFacade.chargePoint(user, point);
+
+                } catch (Exception ee) {
+
+                }
+
             }
             countDownLatch.countDown();
+            logger.info("total retryCount :: {}", retryCnt);
         }
     }
 

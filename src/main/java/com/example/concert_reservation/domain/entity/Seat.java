@@ -26,6 +26,6 @@ public class Seat {
     private String grade;
 
 
-//    @Version
-//    private int version;
+    @Version
+    private int version;
 }
