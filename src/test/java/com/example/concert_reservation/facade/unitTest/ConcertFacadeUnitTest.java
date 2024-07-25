@@ -16,9 +16,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -193,7 +193,7 @@ public class ConcertFacadeUnitTest {
 
 
 //        when(reservationRepository.findBySeatIdWithLock(any())).thenReturn(null);
-        when(seatService.getSeatById(any())).thenReturn(expectedSeat);
+        when(seatService.updateSeatState(any(), any())).thenReturn(expectedSeat);
         when(reservationService.reserveSeat(any())).thenReturn(expectedReservation);
 
         //when
@@ -213,8 +213,8 @@ public class ConcertFacadeUnitTest {
         Seat seatInfo = SeatFixture.createSeat(1, 1, 1, 1, Seat.State.RESERVED, 10000l, "A");
 
 
-        when(seatService.getSeatById(any())).thenReturn(seatInfo);
-        when(reservationService.reserveSeat(any())).thenReturn(null);
+        when(seatService.updateSeatState(any(), any())).thenReturn(seatInfo);
+        when(reservationService.reserveSeat(any())).thenThrow(new CustomException(CustomExceptionCode.RESERVATION_FAILED));
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
             concertFacade.reserveSeat(seatId, userId);
@@ -248,9 +248,8 @@ public class ConcertFacadeUnitTest {
 
         when(reservationService.getReservation(any())).thenReturn(expectedReservation);
         when(userService.getUser(any())).thenReturn(expectedUser);
-        when(pointService.chargePoint(any())).thenReturn(expectedPoint);
+        when(pointService.savePoint(any(), any())).thenReturn(expectedPoint);
         when(paymentService.pay(any())).thenReturn(expectedPayment);
-//        when(seatService.saveSeatState(any(), any())).thenReturn(expectedSeat);
 
         //when
         Payment payment = concertFacade.pay(requestPayment);
@@ -269,7 +268,7 @@ public class ConcertFacadeUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        when(reservationService.getReservation(any())).thenReturn(null);
+        when(reservationService.getReservation(any())).thenThrow(new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND));
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
