@@ -20,6 +20,11 @@ public class SeatRepositoryImpl implements SeatRepository {
     public Seat findById(Integer seatId) {
         return seatJpaRepository.findById(seatId).get();
     }
+
+    public Seat findAvailableSeat(Integer seatId) {
+        return seatJpaRepository.findAvailableSeat(seatId).get();
+    }
+
     public List<Seat> findByConcertIdAndState(Integer concertId, Seat.State state) {
         return seatJpaRepository.findByConcertIdAndState(concertId, state);
     }
@@ -36,9 +41,6 @@ public class SeatRepositoryImpl implements SeatRepository {
         seatJpaRepository.saveAllStateBySeatId(seatIdList, state);
     }
 
-    public void saveSeatStateById(Integer seatId, Seat.State state) {
-        seatJpaRepository.saveSeatStateById(seatId, state);
-    }
 
 
 }

@@ -47,7 +47,7 @@ public class SeatServiceUnitTest {
     void 시트ID로_시트_조회_실패_시트없음() {
         //given
         Integer seatId = 1;
-      
+
         when(seatRepository.findById(any())).thenReturn(null);
 
         //when

@@ -43,21 +43,24 @@ public class ReservationServiceUnitTest {
 
         //then
         assertEquals(expectedReservation, reservation);
-        
+
     }
-    
-    @Test 
+
+    @Test
     void 예약_조회_실패 () {
         //given
         Integer reservationId = 1;
         when(reservationRepository.findById(any())).thenReturn(null);
         //when
-        Reservation reservation = reservationService.getReservation(reservationId);
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            reservationService.getReservation(reservationId);
+        });
 
         //then
-        assertEquals(null, reservation);
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getCode(), exception.getCustomExceptionCode().getCode());
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
     }
-    
+
     @Test
     void 예약_정보_저장_및_변경_성공() {
         //given
@@ -69,7 +72,7 @@ public class ReservationServiceUnitTest {
         //then
         assertEquals(expectedReservation, reservation);
     }
-    
+
     @Test
     void 좌석예약_성공 () {
         //given

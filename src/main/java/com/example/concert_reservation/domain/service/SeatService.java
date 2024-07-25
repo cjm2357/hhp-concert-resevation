@@ -2,11 +2,13 @@ package com.example.concert_reservation.domain.service;
 
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
+import com.example.concert_reservation.domain.entity.Reservation;
 import com.example.concert_reservation.domain.service.repository.ReservationRepository;
 import com.example.concert_reservation.domain.service.repository.SeatRepository;
 import com.example.concert_reservation.domain.entity.Seat;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -39,10 +41,17 @@ public class SeatService {
         return seatRepository.findByConcertIdAndState(concertId, Seat.State.EMPTY);
     }
 
-    public void saveSeatState(Integer seatId, Seat.State state) {
-         seatRepository.saveSeatStateById(seatId, state);
+    @Transactional
+    public Seat updateSeatState(Integer seatId, Seat.State state) {
+        Seat seat = seatRepository.findById(seatId);
+        if (seat == null) {
+            log.warn("not found seat of {}", seatId);
+            throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);
+        }
+        seat.setState(state);
+        seat = seatRepository.save(seat);
+        return seat;
     }
-
 
     public void saveAllSeatState( List<Integer> seatIdList, Seat.State state) {
         seatRepository.saveAllStateBySeatId(seatIdList, state);
