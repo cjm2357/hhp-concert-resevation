@@ -63,14 +63,10 @@ public class UserPointFacadeUnitTest {
         //given
         User user = UserFixture.createUser(1, "user1", 1, 3000l);
 
-        when(pointService.getPointByUserIdWithLock(any())).thenReturn(user.getPoint());
-
         Long plusPoint = 5000l;
         Point chargePoint = new Point();
         chargePoint.setAmount(user.getPoint().getAmount() + plusPoint);
-        when(pointService.chargePoint(any())).thenReturn(chargePoint);
-
-        when(userService.save(any())).thenReturn(user);
+        when(pointService.savePoint(any(), any())).thenReturn(chargePoint);
 
         //when
         User responseUser = userPointFacade.chargePoint(user, plusPoint);

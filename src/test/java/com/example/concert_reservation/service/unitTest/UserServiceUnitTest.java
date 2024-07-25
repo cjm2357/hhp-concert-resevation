@@ -38,7 +38,7 @@ public class UserServiceUnitTest {
         //then
         assertEquals(expectedUser, user);
     }
-    
+
     @Test
     void 유저_조회_실패() {
         int userId = 1;

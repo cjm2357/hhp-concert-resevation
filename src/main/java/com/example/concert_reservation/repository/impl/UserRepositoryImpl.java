@@ -9,17 +9,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
-  private final UserJpaRepository userJpaRepository;
+    private final UserJpaRepository userJpaRepository;
 
-  public UserRepositoryImpl (UserJpaRepository userJpaRepository) {
-      this.userJpaRepository = userJpaRepository;
-  }
+    public UserRepositoryImpl (UserJpaRepository userJpaRepository) {
+        this.userJpaRepository = userJpaRepository;
+    }
 
-  public User findById (Integer userId) {
-      return userJpaRepository.findById(userId).orElse(null);
-  }
+    public User findById (Integer userId) {
+        return userJpaRepository.findById(userId).orElse(null);
+    }
 
-   public User save (User user) {
-       return userJpaRepository.save(user);
-   }
+    public User save (User user) {
+        return userJpaRepository.save(user);
+    }
 }
