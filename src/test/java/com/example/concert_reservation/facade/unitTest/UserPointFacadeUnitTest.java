@@ -70,8 +70,6 @@ public class UserPointFacadeUnitTest {
         chargePoint.setAmount(user.getPoint().getAmount() + plusPoint);
         when(pointService.chargePoint(any())).thenReturn(chargePoint);
 
-        when(userService.save(any())).thenReturn(user);
-
         //when
         User responseUser = userPointFacade.chargePoint(user, plusPoint);
 

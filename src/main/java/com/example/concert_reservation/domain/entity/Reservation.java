@@ -38,6 +38,9 @@ public class Reservation {
     private LocalDateTime expiredTime;
 
     public void enrollSeatInfoForReservation (Integer userId, Seat seat) {
+        if (seat == null) {
+            new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);
+        }
         this.seatId = seat.getId();
         this.userId = userId;
         this.scheduleId = seat.getScheduleId();

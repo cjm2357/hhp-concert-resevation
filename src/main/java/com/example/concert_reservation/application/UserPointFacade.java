@@ -26,12 +26,8 @@ public class UserPointFacade {
         return user;
     }
 
-    @Transactional
     public User chargePoint(User user, Long amount) {
-
-        Point point = pointService.getPointByUserIdWithLock(user.getId());
-        point.setAmount(point.getAmount() + amount);
-        point = pointService.chargePoint(point);
+        Point point = pointService.savePoint(user, amount);
         user.setPoint(point);
         log.info("{} user charge {} point", user.getId(), amount);
 

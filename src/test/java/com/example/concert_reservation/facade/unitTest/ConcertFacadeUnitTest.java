@@ -248,9 +248,8 @@ public class ConcertFacadeUnitTest {
 
         when(reservationService.getReservation(any())).thenReturn(expectedReservation);
         when(userService.getUser(any())).thenReturn(expectedUser);
-        when(pointService.chargePoint(any())).thenReturn(expectedPoint);
+        when(pointService.savePoint(any(), any())).thenReturn(expectedPoint);
         when(paymentService.pay(any())).thenReturn(expectedPayment);
-//        when(seatService.saveSeatState(any(), any())).thenReturn(expectedSeat);
 
         //when
         Payment payment = concertFacade.pay(requestPayment);
@@ -269,7 +268,7 @@ public class ConcertFacadeUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
-        when(reservationService.getReservation(any())).thenReturn(null);
+        when(reservationService.getReservation(any())).thenThrow(new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND));
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {

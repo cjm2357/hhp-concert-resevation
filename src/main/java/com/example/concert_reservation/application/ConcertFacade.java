@@ -67,52 +67,50 @@ public class ConcertFacade {
 
     @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
+        //user 존재여부 확인
         User user = userService.getUser(userId);
-        Reservation reservation = enrollSeatAndState(seatId, userId);
+        Seat seat = null;
+//        Seat seat = seatService.updateSeatState(seatId, Seat.State.RESERVED);
+
+        try {
+            seat = seatService.updateSeatState(seatId, Seat.State.RESERVED);
+        } catch (Exception e) {
+            log.warn("user {} fail reservation {} seat", userId, seatId);
+            throw new CustomException(CustomExceptionCode.RESERVATION_FAILED);
+        }
+        Reservation reservation = new Reservation();
+        reservation.enrollSeatInfoForReservation(userId, seat);
+        reservation = reservationService.reserveSeat(reservation);
         log.info("{} user success to reserve {} seat", userId, seatId);
         return reservation;
     }
 
-    @Transactional
-    public Reservation enrollSeatAndState(Integer seatId, Integer userId) {
-        Seat seatInfo = seatService.getSeatById(seatId);
-        Reservation reservation = new Reservation();
-        reservation.enrollSeatInfoForReservation(userId, seatInfo);
-        reservation = reservationService.reserveSeat(reservation);
-        if (reservation == null || reservation.getSeatId() == null) {
-            log.warn("failed reservation");
-            throw new CustomException(CustomExceptionCode.RESERVATION_FAILED);
-        }
-        seatInfo.setState(Seat.State.RESERVED);
-        seatService.updateSeat(seatInfo);
-        return reservation;
-    }
-    //        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
     @Transactional
     public Payment pay(Payment payment) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
         reservation.isNotExpired();
 
+        //예약한 유저인지 확인
         User user = userService.getUser(payment.getUserId());
         user.isReservationUser(reservation.getUserId());
+        //지불 가능한지 확인
         user.isPayable(reservation.getPrice());
-        
-        payment.setCreatedTime(LocalDateTime.now());
-        payment = paymentService.pay(payment);
 
-        
         //lock적용범위
-        Point userPoint = user.getPoint();
-        userPoint.setAmount(userPoint.getAmount() - reservation.getPrice());
-        pointService.chargePoint(userPoint);
+        //transaction 적용범위
+        pointService.savePoint(user, -reservation.getPrice());
+        log.info("price :: {} / {}", reservation.getId(), reservation.getPrice());
         //lock적용범위
+        payment = paymentService.pay(payment);
 
         reservation.setState(Reservation.State.COMPLETED);
         reservationService.changeReservationInfo(reservation);
-//        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+        seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
 
         tokenService.updateStateToExpiredByUserId(user.getId());
+        //transaction 적용범위
+
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
     }

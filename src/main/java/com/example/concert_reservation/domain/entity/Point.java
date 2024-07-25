@@ -18,8 +18,8 @@ public class Point {
 
     private long amount;
 
-    @Version
-    private int version;
+//    @Version
+//    private int version;
 
     public Point() {
 

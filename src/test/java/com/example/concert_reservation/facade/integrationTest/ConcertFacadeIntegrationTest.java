@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -46,6 +47,9 @@ public class ConcertFacadeIntegrationTest {
 
     @Autowired
     PointRepository pointRepository;
+
+    @Autowired
+    PaymentRepository paymentRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(ConcertFacadeIntegrationTest.class);
 
@@ -409,6 +413,68 @@ public class ConcertFacadeIntegrationTest {
         public void run() {
             try {
                 concertFacade.reserveSeat(seatId, userId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
+    }
+
+    @Test
+    void 시트_결제_동시성_테스트() throws Exception{
+        //given
+        int threadCount = 100;
+        int userId = 1;
+
+        List<Payment> payments = new ArrayList<>();
+
+        for (int i =1; i<= threadCount; i++) {
+            Seat seat = SeatFixture.createSeat(null, 1, 1, i, Seat.State.EMPTY,100l ,"A");
+            seatRepository.save(seat);
+            System.out.println("seat.getId() = " + seat.getId());
+            Reservation reservation =
+                    ReservationFixture.creasteReservation(null, 1, 1, seat.getId(), 1, seat.getSeatNo(), Reservation.State.WAITING, 100l, "A",LocalDateTime.now());
+            reservationRepository.save(reservation);
+            Payment payment = PaymentFixture.createPayment(null, 1, reservation.getId(), null);
+            payments.add(payment);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (Payment payment : payments) {
+            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+        }
+//        List<Thread> workers = Stream.generate(() -> new Thread(new PayRunner(payment, countDownLatch)))
+//                .limit(threadCount) // 쓰레드를  생성
+//                .collect(Collectors.toList());
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("시트 결제 동시성테스트 100번 run time : {}", endTime - startTime);
+
+        Reservation reservation2 = reservationRepository.findById(1);
+        User user = userRepository.findById(1);
+
+        logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
+        logger.info("reservation info id : {}, seat id : {},  state : {}", reservation2.getId(), reservation2.getSeatId(), reservation2.getState());
+    }
+
+    private class PayRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+        private Payment payment;
+
+        public PayRunner(Payment payment, CountDownLatch countDownLatch) {
+            this.payment = payment;
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                concertFacade.pay(payment);
             } catch (Exception e) {
                 e.printStackTrace();
             }

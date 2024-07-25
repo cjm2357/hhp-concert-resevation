@@ -8,6 +8,7 @@ import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.repository.PointRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -23,6 +24,7 @@ public class PointService {
         return pointRepository.save(point);
     }
 
+    @Transactional
     public Point savePoint(User user, Long amount){
         Point point = pointRepository.findByUserIdWithLock(user.getId());
         point.setAmount(point.getAmount() + amount);

@@ -21,8 +21,8 @@ public class SeatRepositoryImpl implements SeatRepository {
         return seatJpaRepository.findById(seatId).get();
     }
 
-    public Seat findByIdWithLock(Integer seatId) {
-        return seatJpaRepository.findByIdWithLock(seatId).get();
+    public Seat findAvailableSeat(Integer seatId) {
+        return seatJpaRepository.findAvailableSeat(seatId).get();
     }
 
     public List<Seat> findByConcertIdAndState(Integer concertId, Seat.State state) {

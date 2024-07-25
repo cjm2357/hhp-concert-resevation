@@ -52,10 +52,13 @@ public class ReservationServiceUnitTest {
         Integer reservationId = 1;
         when(reservationRepository.findById(any())).thenReturn(null);
         //when
-        Reservation reservation = reservationService.getReservation(reservationId);
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            reservationService.getReservation(reservationId);
+        });
 
         //then
-        assertEquals(null, reservation);
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getCode(), exception.getCustomExceptionCode().getCode());
+        assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage());
     }
     
     @Test

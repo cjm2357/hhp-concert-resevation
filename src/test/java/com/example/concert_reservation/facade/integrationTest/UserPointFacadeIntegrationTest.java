@@ -71,7 +71,6 @@ public class UserPointFacadeIntegrationTest {
             userPointFacade.getUserWithPoint(userId);
         });
 
-
         //then
         assertEquals(CustomExceptionCode.USER_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.USER_NOT_FOUND.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
