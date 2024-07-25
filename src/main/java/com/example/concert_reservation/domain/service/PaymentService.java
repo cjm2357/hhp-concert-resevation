@@ -4,6 +4,8 @@ import com.example.concert_reservation.domain.entity.Payment;
 import com.example.concert_reservation.domain.service.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class PaymentService {
 
@@ -16,6 +18,7 @@ public class PaymentService {
 
 
     public Payment pay(Payment payment) {
+        payment.setCreatedTime(LocalDateTime.now());
         return paymentRepository.save(payment);
     }
 
