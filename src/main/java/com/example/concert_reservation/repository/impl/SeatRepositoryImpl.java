@@ -41,9 +41,6 @@ public class SeatRepositoryImpl implements SeatRepository {
         seatJpaRepository.saveAllStateBySeatId(seatIdList, state);
     }
 
-    public void saveSeatStateById(Integer seatId, Seat.State state) {
-        seatJpaRepository.saveSeatStateById(seatId, state);
-    }
 
 
 }

@@ -141,8 +141,6 @@ public class UserPointFacadeIntegrationTest {
         private User user;
         private Long point;
 
-        private static int retryCnt =0;
-
         public PointChargeRunner(User user, long point, CountDownLatch countDownLatch) {
             this.user = user;
             this.point = point;
@@ -155,18 +153,8 @@ public class UserPointFacadeIntegrationTest {
                 userPointFacade.chargePoint(user, point);
             } catch (Exception e) {
                 e.printStackTrace();
-                retryCnt++;
-                try {
-                    Thread.sleep(1000);
-                    userPointFacade.chargePoint(user, point);
-
-                } catch (Exception ee) {
-
-                }
-
             }
             countDownLatch.countDown();
-            logger.info("total retryCount :: {}", retryCnt);
         }
     }
 

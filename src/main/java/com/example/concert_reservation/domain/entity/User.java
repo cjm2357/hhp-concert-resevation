@@ -37,8 +37,8 @@ public class User {
             log.warn("{} user, no point information", id);
             throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);
         }
-        if (point.getAmount() < price) {
-            log.warn("{} user, points are less than the payment amount");
+        if (point.getAmount() < price || point.getAmount() < 0) {
+            log.warn("{} user, points not enough");
             throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
         }
     }

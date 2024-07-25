@@ -32,9 +32,19 @@ public class PointService {
         return point;
     }
 
+    @Transactional
+    public Point payPoint(User user, Long amount){
+        Point point = pointRepository.findByUserIdWithLock(user.getId());
+        if (point.getAmount() < amount || point.getAmount() <= 0) {
+            throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
+        }
+        point.setAmount(point.getAmount() - amount);
+        point = pointRepository.save(point);
+        return point;
+    }
+
     public Point getPointByUserIdWithLock(Integer userId) {
         Point point =  pointRepository.findByUserIdWithLock(userId);
-        log.info(Thread.currentThread().getName() + ">> Lock 시작 ><");
         if (point == null) {
             log.warn("{} user point not found", userId);
             throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);

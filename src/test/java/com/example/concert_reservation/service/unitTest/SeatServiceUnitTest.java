@@ -34,7 +34,7 @@ public class SeatServiceUnitTest {
         //given
         Integer seatId = 1;
         Seat expectedSeat = SeatFixture.createSeat(seatId, 1, seatId,1 ,Seat.State.EMPTY  ,10000l, "A");
-        when(seatRepository.findAvailableSeat(any())).thenReturn(expectedSeat);
+        when(seatRepository.findById(any())).thenReturn(expectedSeat);
 
         //when
         Seat seat = seatService.getSeatById(seatId);
@@ -48,7 +48,7 @@ public class SeatServiceUnitTest {
         //given
         Integer seatId = 1;
       
-        when(seatRepository.findAvailableSeat(any())).thenReturn(null);
+        when(seatRepository.findById(any())).thenReturn(null);
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {

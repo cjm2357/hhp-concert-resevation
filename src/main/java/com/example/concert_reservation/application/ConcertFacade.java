@@ -4,12 +4,10 @@ import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.*;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,12 +63,10 @@ public class ConcertFacade {
         return seatService.getAvailableSeatList(scheduleId);
     }
 
-    @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
         //user 존재여부 확인
         User user = userService.getUser(userId);
         Seat seat = null;
-//        Seat seat = seatService.updateSeatState(seatId, Seat.State.RESERVED);
 
         try {
             seat = seatService.updateSeatState(seatId, Seat.State.RESERVED);
@@ -85,8 +81,6 @@ public class ConcertFacade {
         return reservation;
     }
 
-
-    @Transactional
     public Payment pay(Payment payment) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
         reservation.isNotExpired();
@@ -97,19 +91,13 @@ public class ConcertFacade {
         //지불 가능한지 확인
         user.isPayable(reservation.getPrice());
 
-        //lock적용범위
-        //transaction 적용범위
-        pointService.savePoint(user, -reservation.getPrice());
-        log.info("price :: {} / {}", reservation.getId(), reservation.getPrice());
-        //lock적용범위
-        payment = paymentService.pay(payment);
+        pointService.payPoint(user, reservation.getPrice());
 
         reservation.setState(Reservation.State.COMPLETED);
-        reservationService.changeReservationInfo(reservation);
         seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
-
+        payment = paymentService.pay(payment);
+        reservationService.changeReservationInfo(reservation);
         tokenService.updateStateToExpiredByUserId(user.getId());
-        //transaction 적용범위
 
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;

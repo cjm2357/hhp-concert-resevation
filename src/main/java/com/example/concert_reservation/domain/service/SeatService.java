@@ -41,9 +41,9 @@ public class SeatService {
         return seatRepository.findByConcertIdAndState(concertId, Seat.State.EMPTY);
     }
 
-//    @Transactional
+    @Transactional
     public Seat updateSeatState(Integer seatId, Seat.State state) {
-        Seat seat = seatRepository.findAvailableSeat(seatId);
+        Seat seat = seatRepository.findById(seatId);
         if (seat == null) {
             log.warn("not found seat of {}", seatId);
             throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);

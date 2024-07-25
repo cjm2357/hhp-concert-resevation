@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -175,7 +176,7 @@ public class ConcertFacadeIntegrationTest {
         Integer userId = 1;
         Integer concertId = 1;
 
-        Seat seat1 = SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.RESERVED, 1000l, "A");
+        Seat seat1 = SeatFixture.createSeat(null, concertId, scheduleId, 1, Seat.State.EMPTY, 1000l, "A");
         seat1 = seatRepository.save(seat1);
 
         Reservation reservation = new Reservation();
@@ -217,8 +218,8 @@ public class ConcertFacadeIntegrationTest {
         });
 
         //then
-        assertEquals(CustomExceptionCode.RESERVATION_EXIST.getStatus(), exception.getCustomExceptionCode().getStatus());
-        assertEquals(CustomExceptionCode.RESERVATION_EXIST.getMessage(), exception.getCustomExceptionCode().getMessage());
+        assertEquals(CustomExceptionCode.RESERVATION_FAILED.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.RESERVATION_FAILED.getMessage(), exception.getCustomExceptionCode().getMessage());
 
     }
 
@@ -261,6 +262,9 @@ public class ConcertFacadeIntegrationTest {
     void 결제_성공() {
         //given
         Integer userId = 1;
+
+        Seat seat = SeatFixture.createSeat(1, 1, 1, 1,  Seat.State.RESERVED,8000l, "A");
+        seatRepository.save(seat);
 
         Reservation reservation =
                 ReservationFixture.creasteReservation(null, userId, 1, 1, 1, 1, Reservation.State.WAITING, 8000l, "A", LocalDateTime.now());
@@ -421,7 +425,7 @@ public class ConcertFacadeIntegrationTest {
     }
 
     @Test
-    void 시트_결제_동시성_테스트() throws Exception{
+    void 시트_결제_동시성_테스트_예약한_모든좌석구매() throws Exception{
         //given
         int threadCount = 100;
         int userId = 1;
@@ -431,7 +435,6 @@ public class ConcertFacadeIntegrationTest {
         for (int i =1; i<= threadCount; i++) {
             Seat seat = SeatFixture.createSeat(null, 1, 1, i, Seat.State.EMPTY,100l ,"A");
             seatRepository.save(seat);
-            System.out.println("seat.getId() = " + seat.getId());
             Reservation reservation =
                     ReservationFixture.creasteReservation(null, 1, 1, seat.getId(), 1, seat.getSeatNo(), Reservation.State.WAITING, 100l, "A",LocalDateTime.now());
             reservationRepository.save(reservation);
@@ -444,23 +447,68 @@ public class ConcertFacadeIntegrationTest {
         for (Payment payment : payments) {
             workers.add( new Thread(new PayRunner(payment, countDownLatch)));
         }
-//        List<Thread> workers = Stream.generate(() -> new Thread(new PayRunner(payment, countDownLatch)))
-//                .limit(threadCount) // 쓰레드를  생성
-//                .collect(Collectors.toList());
 
         //when
         long startTime = System.currentTimeMillis();
         workers.forEach(Thread::start); // 모든 쓰레드 시작
         countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
         long endTime = System.currentTimeMillis();
-        logger.info("시트 결제 동시성테스트 100번 run time : {}", endTime - startTime);
+        logger.info("시트_결제_동시성_테스트_예약한_모든좌석구매 100번 run time : {}", endTime - startTime);
 
-        Reservation reservation2 = reservationRepository.findById(1);
         User user = userRepository.findById(1);
 
         logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
-        logger.info("reservation info id : {}, seat id : {},  state : {}", reservation2.getId(), reservation2.getSeatId(), reservation2.getState());
+
+        List<Seat> emptySeat = seatRepository.findByConcertIdAndState(1, Seat.State.EMPTY);
+        logger.info("empty seat  : {} ", emptySeat.size());
+        assertEquals(0, emptySeat.size());
+        assertEquals(10000 - (100* threadCount), user.getPoint().getAmount());
+
     }
+
+
+    @Test
+    void 시트_결제_동시성_테스트_결제중_잔액부족() throws Exception{
+        //given
+        int threadCount = 100;
+        int userId = 1;
+
+        List<Payment> payments = new ArrayList<>();
+
+        for (int i =1; i<= threadCount; i++) {
+            Seat seat = SeatFixture.createSeat(null, 1, 1, i, Seat.State.EMPTY,1000l ,"A");
+            seatRepository.save(seat);
+            Reservation reservation =
+                    ReservationFixture.creasteReservation(null, 1, 1, seat.getId(), 1, seat.getSeatNo(), Reservation.State.WAITING, 1000l, "A",LocalDateTime.now());
+            reservationRepository.save(reservation);
+            Payment payment = PaymentFixture.createPayment(null, 1, reservation.getId(), null);
+            payments.add(payment);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (Payment payment : payments) {
+            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("시트_결제_동시성_테스트_결제중_잔액부족 run time : {}", endTime - startTime);
+
+        User user = userRepository.findById(1);
+
+        logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
+        
+        List<Seat> emptySeat = seatRepository.findByConcertIdAndState(1, Seat.State.EMPTY);
+        logger.info("empty seat  : {} ", emptySeat.size());
+        assertEquals(90, emptySeat.size());
+        assertEquals(10000 - (100* threadCount), user.getPoint().getAmount());
+
+    }
+
 
     private class PayRunner implements Runnable {
         private CountDownLatch countDownLatch;
@@ -472,7 +520,7 @@ public class ConcertFacadeIntegrationTest {
         }
 
         @Override
-        public void run() {
+        public void run()  {
             try {
                 concertFacade.pay(payment);
             } catch (Exception e) {

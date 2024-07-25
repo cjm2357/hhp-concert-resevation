@@ -28,7 +28,6 @@ public class PointRepositoryImpl implements PointRepository {
     }
     @Override
     public Point save(Point point) {
-        log.info(Thread.currentThread().getName() + ">> Lock 종료 ><");
        return pointJpaRepository.save(point);
     }
 }
