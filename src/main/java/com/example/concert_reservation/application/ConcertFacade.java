@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,62 +63,42 @@ public class ConcertFacade {
         return seatService.getAvailableSeatList(scheduleId);
     }
 
-    @Transactional
     public Reservation reserveSeat(Integer seatId, Integer userId) {
+        //user 존재여부 확인
         User user = userService.getUser(userId);
-        Seat seatInfo = seatService.getSeatById(seatId);
-        Reservation reservation = new Reservation();
-        reservation.enrollSeatInfoForReservation(userId, seatInfo);
-        reservation = reservationService.reserveSeat(reservation);
-        if (reservation == null || reservation.getSeatId() == null) {
-            log.warn("failed reservation");
+        Seat seat = null;
+
+        try {
+            seat = seatService.updateSeatState(seatId, Seat.State.RESERVED);
+        } catch (Exception e) {
+            log.warn("user {} fail reservation {} seat", userId, seatId);
             throw new CustomException(CustomExceptionCode.RESERVATION_FAILED);
         }
-        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+        Reservation reservation = new Reservation();
+        reservation.enrollSeatInfoForReservation(userId, seat);
+        reservation = reservationService.reserveSeat(reservation);
         log.info("{} user success to reserve {} seat", userId, seatId);
         return reservation;
     }
 
-    @Transactional
     public Payment pay(Payment payment) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
-        if (reservation == null) {
-            log.warn("no reservation information");
-            throw new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND);
-        }
-        if (reservation.getState() == Reservation.State.EXPIRED || reservation.getExpiredTime().isBefore(LocalDateTime.now())) {
-            log.warn("{} user, payment time expired", payment.getUserId());
-            throw new CustomException(CustomExceptionCode.PAYMENT_TIME_EXPIRE);
-        }
+        reservation.isNotExpired();
 
-
+        //예약한 유저인지 확인
         User user = userService.getUser(payment.getUserId());
-        if (user.getId() != reservation.getUserId()) {
-            log.warn("try payment different user");
-            throw new CustomException(CustomExceptionCode.PAYMENT_DIFFERENT_USER);
-        }
+        user.isReservationUser(reservation.getUserId());
+        //지불 가능한지 확인
+        user.isPayable(reservation.getPrice());
 
-        if (user.getPoint() == null) {
-            log.warn("{} user, no point information", user.getId());
-            throw new CustomException(CustomExceptionCode.USER_POINT_NOT_FOUND);
-        }
-        if (user.getPoint().getAmount() < reservation.getPrice()) {
-            log.warn("{} user, points are less than the payment amount");
-            throw new CustomException(CustomExceptionCode.POINT_NOT_ENOUGH);
-        }
-
-        payment.setCreatedTime(LocalDateTime.now());
-        payment = paymentService.pay(payment);
-
-        Point userPoint = user.getPoint();
-        userPoint.setAmount(userPoint.getAmount() - reservation.getPrice());
-        pointService.chargePoint(userPoint);
+        pointService.payPoint(user, reservation.getPrice());
 
         reservation.setState(Reservation.State.COMPLETED);
+        seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+        payment = paymentService.pay(payment);
         reservationService.changeReservationInfo(reservation);
-        seatService.saveSeatState(reservation.getSeatId(), Seat.State.RESERVED);
-
         tokenService.updateStateToExpiredByUserId(user.getId());
+
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
     }
