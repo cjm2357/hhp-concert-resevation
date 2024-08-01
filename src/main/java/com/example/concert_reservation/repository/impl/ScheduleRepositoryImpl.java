@@ -1,23 +1,31 @@
 package com.example.concert_reservation.repository.impl;
 
 import com.example.concert_reservation.domain.entity.Schedule;
+import com.example.concert_reservation.repository.ScheduleCacheRepository;
 import com.example.concert_reservation.repository.ScheduleJpaRepository;
 import com.example.concert_reservation.domain.service.repository.ScheduleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 
+@RequiredArgsConstructor
 @Repository
 public class ScheduleRepositoryImpl implements ScheduleRepository {
 
     private final ScheduleJpaRepository scheduleJpaRepository;
+    private final ScheduleCacheRepository scheduleCacheRepository;
 
-    public ScheduleRepositoryImpl(ScheduleJpaRepository scheduleJpaRepository) {
-        this.scheduleJpaRepository = scheduleJpaRepository;
-    }
+
     public List<Schedule> findByConcertId(Integer concertId) {
-        return this.scheduleJpaRepository.findByConcertId(concertId);
+        List<Schedule> schedules = scheduleCacheRepository.findSchedulesByConcertId(concertId);
+        if (schedules == null || schedules.size() == 0) {
+            schedules = scheduleJpaRepository.findByConcertId(concertId);
+            scheduleCacheRepository.saveSchedules(schedules);
+
+        }
+        return schedules;
     }
 
     public Schedule save(Schedule schedule) {
