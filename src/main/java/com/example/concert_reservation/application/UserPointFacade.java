@@ -1,7 +1,5 @@
 package com.example.concert_reservation.application;
 
-import com.example.concert_reservation.config.exception.CustomException;
-import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.PointService;
@@ -28,14 +26,11 @@ public class UserPointFacade {
         return user;
     }
 
-    @Transactional
     public User chargePoint(User user, Long amount) {
-        Point point = pointService.getPointByUserIdWithLock(user.getId());
-        point.setAmount(point.getAmount() + amount);
-        point = pointService.chargePoint(point);
+        Point point = pointService.savePoint(user, amount);
         user.setPoint(point);
-        user = userService.save(user);
         log.info("{} user charge {} point", user.getId(), amount);
+
         return user;
     }
 

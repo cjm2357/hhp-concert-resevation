@@ -7,8 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SeatJpaRepository extends JpaRepository<Seat, Integer> {
+
+    @Query("SELECT s FROM Seat s WHERE s.id = :seatId and s.state = 'EMPTY'")
+    Optional<Seat> findAvailableSeat(Integer seatId);
 
     List<Seat> findByConcertIdAndState(Integer concertId, Seat.State state);
 
@@ -18,10 +22,5 @@ public interface SeatJpaRepository extends JpaRepository<Seat, Integer> {
     @Transactional
     @Query("UPDATE Seat s SET s.state = :state WHERE s.id IN :seatIdList")
     void saveAllStateBySeatId(List<Integer> seatIdList, Seat.State state);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE Seat s SET s.state = :state WHERE s.id = :seatId")
-    void saveSeatStateById(Integer seatId, Seat.State state);
 
 }
