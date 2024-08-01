@@ -25,7 +25,7 @@ public class TokenScheduler {
     private final int activateCount = 50;
 
     //10초마다 작동
-//    @Scheduled(fixedRate = 10 * 1000)
+    @Scheduled(fixedRate = 10 * 1000)
     public void changeActiveStatus() {
 
         // 분산환경에서 스케줄 중복실행방지를 위해 분산 락 사용
