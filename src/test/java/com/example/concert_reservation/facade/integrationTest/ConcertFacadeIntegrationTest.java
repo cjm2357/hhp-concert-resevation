@@ -6,12 +6,15 @@ import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.repository.*;
 import com.example.concert_reservation.fixture.*;
+import com.example.concert_reservation.repository.ConcertCacheRepository;
+import com.example.concert_reservation.repository.ScheduleCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +54,12 @@ public class ConcertFacadeIntegrationTest {
 
     @Autowired
     PaymentRepository paymentRepository;
+
+    @Autowired
+    ConcertCacheRepository concertCacheRepository;
+
+    @Autowired
+    ScheduleCacheRepository scheduleCacheRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(ConcertFacadeIntegrationTest.class);
 
@@ -383,7 +392,8 @@ public class ConcertFacadeIntegrationTest {
         seatRepository.save(seat);
 
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
-        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), userId, countDownLatch)))
+//        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), userId, countDownLatch)))
+        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), (int)(Math.random()) * 100 + 1, countDownLatch)))
                 .limit(threadCount) // 쓰레드를  생성
                 .collect(Collectors.toList());
 
@@ -530,5 +540,248 @@ public class ConcertFacadeIntegrationTest {
         }
     }
 
+
+    /**
+     * case1 : db에만 넣고 조회 -> 조회성공
+     * case2 : db에만 넣고 캐시에서 조회되는 확인
+     * case3 : 속도비교
+     * */
+
+
+    @Test
+    void 콘서트_db에만_넣고_조회_성공() {
+        //given
+        Concert concert1 = ConcertFixture.createConcert(1, "concert A");
+        Concert concert2 = ConcertFixture.createConcert(2, "concert B");
+        concertRepository.save(concert1);
+        concertRepository.save(concert2);
+
+        //when
+        List<Concert> concerts = concertFacade.getConcertList();
+
+        //then
+        assertEquals(2, concerts.size());
+        assertEquals(1, concerts.get(0).getId());
+        assertEquals("concert A", concerts.get(0).getName());
+        assertEquals(2, concerts.get(1).getId());
+        assertEquals("concert B", concerts.get(1).getName());
+
+    }
+
+    @Test
+    void 콘서트_db에만_넣고_캐시에서조회_실패() {
+        //given
+        Concert concert1 = ConcertFixture.createConcert(1, "concert A");
+        Concert concert2 = ConcertFixture.createConcert(2, "concert B");
+        concertRepository.save(concert1);
+        concertRepository.save(concert2);
+
+        //when
+        List<Concert> concerts = concertCacheRepository.findConcerts();
+
+        //then
+        assertEquals(0, concerts.size());
+    }
+
+    @Test
+    void DB만_이용하여_100개의_콘서트_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+
+        for (int i=1; i <= 100; i++) {
+            Concert concert = ConcertFixture.createConcert(i, "concert "+i);
+            concertRepository.save(concert);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ConcertFindRunner(countDownLatch)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("DB만_이용하여_100개의_콘서트_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+    @Test
+    void 캐시를_이용하여_100개의_콘서트_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+
+        for (int i=1; i <= 100; i++) {
+            Concert concert = ConcertFixture.createConcert(i, "concert "+i);
+            concertRepository.save(concert);
+            concertCacheRepository.saveConcert(concert);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ConcertFindRunner(countDownLatch)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("캐시를_이용하여_100개의_콘서트_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+    private class ConcertFindRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+
+        public ConcertFindRunner(CountDownLatch countDownLatch) {
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run()  {
+            try {
+                concertFacade.getConcertList();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
+    }
+
+    @Test
+    void 스케쥴_db에만_넣고_조회_성공() {
+        //given
+        int concertId = 1;
+        Schedule schedule1 = ScheduleFixture.createSchedule(1, concertId, LocalDateTime.of(2024,1,1,13,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(2, concertId, LocalDateTime.of(2024,2,1,13,0));
+        Schedule schedule3 = ScheduleFixture.createSchedule(3, concertId, LocalDateTime.of(2024,3,1,13,0));
+
+        scheduleRepository.save(schedule1);
+        scheduleRepository.save(schedule2);
+        scheduleRepository.save(schedule3);
+        Seat seat1 = SeatFixture.createSeat(1, concertId, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, concertId, 2, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat3 = SeatFixture.createSeat(3, concertId, 3, 1, Seat.State.RESERVED, 1000l, "A");
+        seatRepository.save(seat1);
+        seatRepository.save(seat2);
+        seatRepository.save(seat3);
+
+        //when
+        List<Schedule> schedules = concertFacade.getAvailableScheduleList(concertId);
+
+        //then
+        assertEquals(2, schedules.size());
+        assertEquals(1, schedules.get(0).getId());
+        assertEquals(2, schedules.get(1).getId());
+
+    }
+
+    @Test
+    void 스케쥴_db에만_넣고_캐시에서조회_실패() {
+        //given
+        int concertId = 1;
+        Schedule schedule1 = ScheduleFixture.createSchedule(1, concertId, LocalDateTime.of(2024,1,1,13,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(2, concertId, LocalDateTime.of(2024,2,1,13,0));
+        Schedule schedule3 = ScheduleFixture.createSchedule(3, concertId, LocalDateTime.of(2024,3,1,13,0));
+
+        scheduleRepository.save(schedule1);
+        scheduleRepository.save(schedule2);
+        scheduleRepository.save(schedule3);
+        Seat seat1 = SeatFixture.createSeat(1, concertId, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, concertId, 2, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat3 = SeatFixture.createSeat(3, concertId, 3, 1, Seat.State.RESERVED, 1000l, "A");
+        seatRepository.save(seat1);
+        seatRepository.save(seat2);
+        seatRepository.save(seat3);
+
+        //when
+        List<Schedule> schedules = scheduleCacheRepository.findSchedulesByConcertId(concertId);
+
+        //then
+        assertEquals(0, schedules.size());
+
+    }
+
+
+    @Test
+    void DB만_이용하여_100개의_이용가능_스케쥴_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+        Concert concert = ConcertFixture.createConcert(1, "concert A");
+        concertRepository.save(concert);
+
+        for (int i=1; i <= 100; i++) {
+            Schedule schedule = ScheduleFixture.createSchedule(i, 1,LocalDateTime.of(2024, (i%11) +1,(i%27) + 1, (i%23) + 1,0));
+            Seat seat = SeatFixture.createSeat(i, 1, i, 1, Seat.State.EMPTY, 1000l, "A");
+            scheduleRepository.save(schedule);
+            seatRepository.save(seat);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ScheduleFindRunner(countDownLatch, 1)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("DB만_이용하여_100개의_이용가능_스케쥴_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+
+    @Test
+    void 캐시를_이용하여_100개의_이용가능_스케쥴_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+        Concert concert = ConcertFixture.createConcert(1, "concert A");
+        concertRepository.save(concert);
+
+        for (int i=1; i <= 100; i++) {
+            Schedule schedule = ScheduleFixture.createSchedule(i, 1,LocalDateTime.of(2024, (i%11) +1,(i%27) + 1, (i%23) + 1,0));
+            Seat seat = SeatFixture.createSeat(i, 1, i, 1, Seat.State.EMPTY, 1000l, "A");
+            scheduleRepository.save(schedule);
+            scheduleCacheRepository.saveSchedule(schedule);
+            seatRepository.save(seat);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ScheduleFindRunner(countDownLatch, 1)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("캐시를_이용하여_100개의_이용가능_스케쥴_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+
+    private class ScheduleFindRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+        private int concertId;
+
+        public ScheduleFindRunner(CountDownLatch countDownLatch, Integer concertId) {
+            this.countDownLatch = countDownLatch;
+            this.concertId = concertId;
+        }
+
+        @Override
+        public void run()  {
+            try {
+                concertFacade.getAvailableScheduleList(concertId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
+    }
 
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -97,7 +98,7 @@ public class ConcertFacade {
         seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
         payment = paymentService.pay(payment);
         reservationService.changeReservationInfo(reservation);
-        tokenService.updateStateToExpiredByUserId(user.getId());
+//        tokenService.expireToken(user.getId());
 
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
