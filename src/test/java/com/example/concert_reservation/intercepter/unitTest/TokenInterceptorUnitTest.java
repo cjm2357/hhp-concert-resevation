@@ -44,7 +44,7 @@ public class TokenInterceptorUnitTest {
         when(request.getHeader("Authorization")).thenReturn(tokenKey.toString());
         User user = UserFixture.createUser(1, "user1", 1, 100l);
         Token token = TokenFixture.createToken(1, user,tokenKey, LocalDateTime.now(), Token.TokenState.ACTIVATE);
-        when(tokenFacade.getTokenInfo(tokenKey)).thenReturn(token);
+        when(tokenFacade.getTokenStatus(tokenKey)).thenReturn(token);
 
         //when
         boolean isPass = tokenInterceptor.preHandle(request, response, new Object());
@@ -78,7 +78,7 @@ public class TokenInterceptorUnitTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(request.getHeader("Authorization")).thenReturn(tokenKey.toString());
-        when(tokenFacade.getTokenInfo(tokenKey)).thenReturn(null);
+        when(tokenFacade.getTokenStatus(tokenKey)).thenReturn(null);
 
         //then
         CustomException exception = assertThrows(CustomException.class, () -> {
@@ -99,7 +99,7 @@ public class TokenInterceptorUnitTest {
         when(request.getHeader("Authorization")).thenReturn(tokenKey.toString());
         User user = UserFixture.createUser(1, "user1", 1, 100l);
         Token token = TokenFixture.createToken(1, user,tokenKey, LocalDateTime.now(), Token.TokenState.EXPIRED);
-        when(tokenFacade.getTokenInfo(tokenKey)).thenReturn(token);
+        when(tokenFacade.getTokenStatus(tokenKey)).thenReturn(token);
 
         //then
         CustomException exception = assertThrows(CustomException.class, () -> {

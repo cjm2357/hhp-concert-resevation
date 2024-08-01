@@ -36,7 +36,7 @@ public class TokenInterceptor implements HandlerInterceptor {
             throw new CustomException(CustomExceptionCode.NO_TOKEN_KEY);
         }
 
-        Token token = tokenFacade.getTokenInfo(tokenKey);
+        Token token = tokenFacade.getTokenStatus(tokenKey);
 
         if (token == null) {
             log.warn("Request failed. no token of {}", tokenKey);

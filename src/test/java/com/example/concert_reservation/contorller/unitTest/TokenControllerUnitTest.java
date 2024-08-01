@@ -63,7 +63,7 @@ public class TokenControllerUnitTest {
         token.setOrder(0);
 
         // JSON 문자열을 직접 생성
-        when(tokenFacade.getToken(requestDto.getUserId())).thenReturn(token);
+        when(tokenFacade.createToken(requestDto.getUserId())).thenReturn(token);
 
         //when
         //then
@@ -109,7 +109,7 @@ public class TokenControllerUnitTest {
         token.setOrder(100);
         token.setTokenKey(tokenKey);
 
-        when(tokenFacade.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
+        when(tokenFacade.getTokenStatus(tokenKey)).thenReturn(token);
 
         //when
         //then
@@ -134,7 +134,7 @@ public class TokenControllerUnitTest {
         token.setOrder(100);
         token.setTokenKey(tokenKey);
 
-        when(tokenFacade.getTokenStatusAndUpdate(tokenKey)).thenReturn(token);
+        when(tokenFacade.getTokenStatus(tokenKey)).thenReturn(token);
 
         //when
         //then

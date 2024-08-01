@@ -41,10 +41,10 @@ public class TokenFacadeUnitTest {
         User user = UserFixture.createUser(1, "user1", 1, 10000l);
         Token expectedToken = TokenFixture.createToken(1, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
         when(userService.getUser(any())).thenReturn(user);
-        when(tokenService.getToken(any())).thenReturn(expectedToken);
+        when(tokenService.createToken(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenFacade.getToken(user.getId());
+        Token token = tokenFacade.createToken(user.getId());
         token.setOrder(0);
 
         //then
@@ -66,10 +66,10 @@ public class TokenFacadeUnitTest {
         when(userService.getUser(any())).thenReturn(user);
         Token expectedToken =  TokenFixture.createToken(60, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.WAITING);
 
-        when(tokenService.getToken(any())).thenReturn(expectedToken);
+        when(tokenService.createToken(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenFacade.getToken(user.getId());
+        Token token = tokenFacade.createToken(user.getId());
         token.setOrder(10);
 
         //then
@@ -93,10 +93,10 @@ public class TokenFacadeUnitTest {
         expectedToken.setOrder(60-50);
 
 
-        when(tokenService.getTokenStatusAndUpdate(any())).thenReturn(expectedToken);
+        when(tokenService.getTokenStatus(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenFacade.getTokenStatusAndUpdate(searchedToken.getTokenKey());
+        Token token = tokenFacade.getTokenStatus(searchedToken.getTokenKey());
 
         //then
         assertEquals(60- 50, token.getOrder());
@@ -116,10 +116,10 @@ public class TokenFacadeUnitTest {
         Token curToken = TokenFixture.createToken(70, user, UUID.randomUUID(), LocalDateTime.now().minusMinutes(15), Token.TokenState.ACTIVATE);
         curToken.setOrder(100);
 
-        when(tokenService.getTokenStatusAndUpdate(any())).thenReturn(curToken);
+        when(tokenService.getTokenStatus(any())).thenReturn(curToken);
 
         //when
-        Token token = tokenFacade.getTokenStatusAndUpdate(curToken.getTokenKey());
+        Token token = tokenFacade.getTokenStatus(curToken.getTokenKey());
         token.setOrder(0);
 
         //then

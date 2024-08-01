@@ -32,11 +32,9 @@ public class TokenController {
             throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
 
-        Token token = tokenFacade.getToken(dto.getUserId());
+        Token token = tokenFacade.createToken(dto.getUserId());
         TokenResponseDto responseDto = new TokenResponseDto(token);
         return ResponseEntity.ok(responseDto);
-
-
 
     }
 
@@ -44,7 +42,7 @@ public class TokenController {
     @GetMapping("/token/status")
     public ResponseEntity<?> readTokenStatus(@RequestHeader(value = "Authorization", required = false) UUID key) {
         if (key != null) {
-            Token token = tokenFacade.getTokenStatusAndUpdate(key);
+            Token token = tokenFacade.getTokenStatus(key);
             TokenResponseDto responseDto = new TokenResponseDto(token);
             return ResponseEntity.ok(responseDto);
         } else {

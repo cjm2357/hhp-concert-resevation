@@ -41,7 +41,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getToken(user.getId());
+        Token token = tokenService.createToken(user.getId());
 
         //then
         assertEquals(user.getId(), token.getUser().getId());
@@ -66,7 +66,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.getToken(user.getId());
+        Token token = tokenService.createToken(user.getId());
 
         //then
         assertEquals(user.getId(), token.getUser().getId());
@@ -108,7 +108,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.findByStateOrderById(any())).thenReturn(activatedTokens);
 
         //when
-        Token token = tokenService.getTokenStatusAndUpdate(searchedToken.getTokenKey());
+        Token token = tokenService.getTokenStatus(searchedToken.getTokenKey());
 
         //then
         assertEquals(60- 50, token.getOrder());
@@ -136,7 +136,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.findByTokenKey(any())).thenReturn(curToken);
 
         //when
-        Token token = tokenService.getTokenStatusAndUpdate(curToken.getTokenKey());
+        Token token = tokenService.getTokenStatus(curToken.getTokenKey());
 
         //then
         assertEquals(0, token.getOrder());
@@ -165,7 +165,7 @@ public class TokenServiceUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenService.getTokenStatusAndUpdate(tokenKey);
+            tokenService.getTokenStatus(tokenKey);
         });
 
         //then
@@ -183,7 +183,7 @@ public class TokenServiceUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenService.getTokenStatusAndUpdate(tokenKey);
+            tokenService.getTokenStatus(tokenKey);
         });
 
         //then
@@ -201,7 +201,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.findByTokenKey(any())).thenReturn(expectedToken);
 
         //when
-        Token token =  tokenService.getTokenInfo(tokenKey);
+        Token token =  tokenService.getTokenStatus(tokenKey);
 
         //then
         assertEquals(expectedToken, token);
@@ -215,7 +215,7 @@ public class TokenServiceUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenService.getTokenInfo(tokenKey);
+            tokenService.getTokenStatus(tokenKey);
         });
 
         //then
