@@ -13,7 +13,6 @@ import java.util.UUID;
 public interface TokenJpaRepository extends JpaRepository<Token, Integer> {
 
     //만료된 마지막 토큰 찾기
-    Token findFirstByStateOrderByIdDesc(Token.TokenState tokenState);
 
     Token findByTokenKey(UUID key);
 

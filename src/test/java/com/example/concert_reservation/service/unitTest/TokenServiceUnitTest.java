@@ -38,10 +38,11 @@ public class TokenServiceUnitTest {
         //given
         User user = UserFixture.createUser(1, "user1", 1, 10000l);
         Token expectedToken = TokenFixture.createToken(1, user, UUID.randomUUID(), LocalDateTime.now(), Token.TokenState.ACTIVATE);
+        expectedToken.setOrder(0);
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.createToken(user.getId());
+        Token token = tokenService.createToken(user);
 
         //then
         assertEquals(user.getId(), token.getUser().getId());
@@ -66,7 +67,7 @@ public class TokenServiceUnitTest {
         when(tokenRepository.save(any())).thenReturn(expectedToken);
 
         //when
-        Token token = tokenService.createToken(user.getId());
+        Token token = tokenService.createToken(user);
 
         //then
         assertEquals(user.getId(), token.getUser().getId());

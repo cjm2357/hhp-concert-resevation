@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,10 +62,20 @@ public class ConcertFacadeIntegrationTest {
     @Autowired
     ScheduleCacheRepository scheduleCacheRepository;
 
+    @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
+    RedisTemplate redisTemplate;
+
     private static final Logger logger = LoggerFactory.getLogger(ConcertFacadeIntegrationTest.class);
 
     @BeforeEach
     void init() {
+
+        //redis data 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
         User user = UserFixture.createUser(1, "유저1", 1, 10000l);
         pointRepository.save(user.getPoint());
         userRepository.save(user);
@@ -271,7 +282,7 @@ public class ConcertFacadeIntegrationTest {
     void 결제_성공() {
         //given
         Integer userId = 1;
-
+        User user = userRepository.findById(userId);
         Seat seat = SeatFixture.createSeat(1, 1, 1, 1,  Seat.State.RESERVED,8000l, "A");
         seatRepository.save(seat);
 
@@ -280,12 +291,14 @@ public class ConcertFacadeIntegrationTest {
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
 
         //when
-        payment = concertFacade.pay(payment);
+        payment = concertFacade.pay(payment, token.getTokenKey());
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertNotNull(payment.getId());
         assertEquals(10000-8000, user.getPoint().getAmount());
@@ -296,16 +309,21 @@ public class ConcertFacadeIntegrationTest {
     void 결제실패_예약정보없음() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Payment payment =  PaymentFixture.createPayment(null, userId, 1, LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
@@ -317,20 +335,24 @@ public class ConcertFacadeIntegrationTest {
     void 결제시간만료_실패() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Reservation reservation =
                 ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.EXPIRED, 8000l, "A", LocalDateTime.now().minusMinutes(10));
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
@@ -342,18 +364,23 @@ public class ConcertFacadeIntegrationTest {
     void 결제_잔액부족() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Reservation reservation = ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.WAITING, 12000l, "A", LocalDateTime.now());
         reservation = reservationRepository.save(reservation);
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
@@ -367,15 +394,22 @@ public class ConcertFacadeIntegrationTest {
         Integer userId = 1;
         Integer userId2 = 2;
 
+        User user = userRepository.findById(userId);
+        User user2 = userRepository.findById(userId2);
+
         Reservation reservation =
                 ReservationFixture.creasteReservation(null, userId2, 1, 1, 1, 1, Reservation.State.WAITING, 8000l, "A", LocalDateTime.now());
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
@@ -439,6 +473,10 @@ public class ConcertFacadeIntegrationTest {
         //given
         int threadCount = 100;
         int userId = 1;
+        User user = new User();
+        user.setId(userId);
+
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
 
         List<Payment> payments = new ArrayList<>();
 
@@ -455,7 +493,7 @@ public class ConcertFacadeIntegrationTest {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
         List<Thread> workers = new ArrayList<>();
         for (Payment payment : payments) {
-            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+            workers.add( new Thread(new PayRunner(payment, token.getTokenKey(), countDownLatch)));
         }
 
         //when
@@ -465,7 +503,7 @@ public class ConcertFacadeIntegrationTest {
         long endTime = System.currentTimeMillis();
         logger.info("시트_결제_동시성_테스트_예약한_모든좌석구매 100번 run time : {}", endTime - startTime);
 
-        User user = userRepository.findById(1);
+        user = userRepository.findById(1);
 
         logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
 
@@ -483,6 +521,11 @@ public class ConcertFacadeIntegrationTest {
         int threadCount = 100;
         int userId = 1;
 
+        User user = new User();
+        user.setId(userId);
+
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+
         List<Payment> payments = new ArrayList<>();
 
         for (int i =1; i<= threadCount; i++) {
@@ -498,7 +541,7 @@ public class ConcertFacadeIntegrationTest {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
         List<Thread> workers = new ArrayList<>();
         for (Payment payment : payments) {
-            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+            workers.add( new Thread(new PayRunner(payment, token.getTokenKey(), countDownLatch)));
         }
 
         //when
@@ -508,7 +551,7 @@ public class ConcertFacadeIntegrationTest {
         long endTime = System.currentTimeMillis();
         logger.info("시트_결제_동시성_테스트_결제중_잔액부족 run time : {}", endTime - startTime);
 
-        User user = userRepository.findById(1);
+        user = userRepository.findById(1);
 
         logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
 
@@ -522,17 +565,19 @@ public class ConcertFacadeIntegrationTest {
 
     private class PayRunner implements Runnable {
         private CountDownLatch countDownLatch;
+        private UUID tokenKey;
         private Payment payment;
 
-        public PayRunner(Payment payment, CountDownLatch countDownLatch) {
+        public PayRunner(Payment payment, UUID tokenKey, CountDownLatch countDownLatch) {
             this.payment = payment;
+            this.tokenKey = tokenKey;
             this.countDownLatch = countDownLatch;
         }
 
         @Override
         public void run()  {
             try {
-                concertFacade.pay(payment);
+                concertFacade.pay(payment,tokenKey);
             } catch (Exception e) {
                 e.printStackTrace();
             }

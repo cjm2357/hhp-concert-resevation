@@ -48,6 +48,10 @@ public class TokenFacadeIntegrationTest {
 
     @BeforeEach
     void init() {
+
+        //redis data 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
         User user = UserFixture.createUser(1, "유저1", 1, 10000l);
         pointRepository.save(user.getPoint());
         userRepository.save(user);
@@ -169,9 +173,11 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
-        Token token1 = tokenRedisRepository.createToken(user.getId());
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
-        Token token2 = tokenRedisRepository.createToken(user2.getId());
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
         tokenRedisRepository.activateTokens(2);
 
         //when
@@ -211,9 +217,11 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
-        Token token1 = tokenRedisRepository.createToken(user.getId());
-        Token token2 = tokenRedisRepository.createToken(user2.getId());
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
 
         //when
         tokenFacade.expireToken(token1.getTokenKey());
@@ -241,11 +249,12 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
-        Token token1 = tokenRedisRepository.createToken(user.getId());
-        Token token2 = tokenRedisRepository.createToken(user2.getId());
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
         tokenRedisRepository.activateTokens(1);
-
 
         //when
         token1 = tokenFacade.getTokenStatus(token1.getTokenKey());

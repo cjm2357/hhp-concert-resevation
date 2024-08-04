@@ -1,7 +1,6 @@
 package com.example.concert_reservation.application;
 
 
-import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.service.TokenService;
@@ -27,7 +26,7 @@ public class TokenFacade {
     @Transactional
     public Token createToken(Integer userId) {
         User user = userService.getUser(userId);
-        Token token = tokenService.createToken(userId);
+        Token token = tokenService.createToken(user);
         log.info("{} user get {} token", userId, token.getTokenKey());
        return token;
     }
@@ -36,12 +35,6 @@ public class TokenFacade {
         return tokenService.getTokenStatus(key);
     }
 
-//    @Transactional
-//    public Token getTokenStatusAndUpdate(UUID key) {
-//       return tokenService.getTokenStatus(key);
-//    }
-
-//    public Token getTokenInfo(UUID tokenKey) { return tokenService.getTokenStatus(tokenKey);}
 
     public void expireToken(UUID tokenKey) {
         //ACTIVATE 토큰만 만료시간이 되면 만료시킨다.

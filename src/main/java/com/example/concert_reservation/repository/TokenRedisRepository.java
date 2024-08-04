@@ -24,15 +24,7 @@ public class TokenRedisRepository {
     public static final String PRE_ACTIVE_KEY = "active:";
     private final RedisTemplate redisTemplate;
 
-    public Token createToken(Integer userId) {
-        User user = new User();
-        user.setId(userId);
-
-        Token token = Token.builder()
-                .user(user)
-                .key(UUID.randomUUID())
-                .state(Token.TokenState.WAITING)
-                .build();
+    public Token createToken(Token token) {
 
         redisTemplate.opsForZSet().add(WAITING_KEY, token.getTokenKey().toString(), System.currentTimeMillis());
         //순서 조회
@@ -42,7 +34,6 @@ public class TokenRedisRepository {
     }
 
     public Token getTokenStatus(UUID key) {
-
 
         //waitTokens에 있을때
         Long order = redisTemplate.opsForZSet().rank(WAITING_KEY, key.toString());
@@ -74,8 +65,6 @@ public class TokenRedisRepository {
     public void activateTokens(Integer activateCount) {
         int lastIndex = activateCount -1;
         Set<String> tokens = redisTemplate.opsForZSet().range(WAITING_KEY, 0, lastIndex);
-        System.out.println("activateCount = " + activateCount);
-        System.out.println("tokens = " + tokens);
         tokens.forEach(token ->{
             redisTemplate.opsForZSet().removeRange(WAITING_KEY,0, lastIndex);
             redisTemplate.opsForValue().set(PRE_ACTIVE_KEY + token, token);

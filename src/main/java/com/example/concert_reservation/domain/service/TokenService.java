@@ -21,24 +21,28 @@ import java.util.UUID;
 public class TokenService {
 
     private final TokenRepository tokenRepository;
-    private final TokenRedisRepository tokenRedisRepository;
 
 
-    public Token createToken(Integer userId) {
-        return tokenRedisRepository.createToken(userId);
+    public Token createToken(User user) {
+        Token token = Token.builder()
+                .key(UUID.randomUUID())
+                .user(user)
+                .build();
+
+        return tokenRepository.save(token);
     }
 
     public Token getTokenStatus(UUID key) {
-        return tokenRedisRepository.getTokenStatus(key);
+        return tokenRepository.findByTokenKey(key);
     }
 
 
     public void expireToken(UUID tokenKey) {
         //ACTIVATE 토큰만 만료시간이 되면 만료시킨다.
-        tokenRedisRepository.expireToken(tokenKey);
+        tokenRepository.expireToken(tokenKey);
     }
 
     public void activateTokens(Integer activateCount) {
-        tokenRedisRepository.activateTokens(activateCount);
+        tokenRepository.activateTokens(activateCount);
     }
 }
