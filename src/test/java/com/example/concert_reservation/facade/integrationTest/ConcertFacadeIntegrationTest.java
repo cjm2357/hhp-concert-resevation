@@ -6,18 +6,22 @@ import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.repository.*;
 import com.example.concert_reservation.fixture.*;
+import com.example.concert_reservation.repository.ConcertCacheRepository;
+import com.example.concert_reservation.repository.ScheduleCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,10 +56,26 @@ public class ConcertFacadeIntegrationTest {
     @Autowired
     PaymentRepository paymentRepository;
 
+    @Autowired
+    ConcertCacheRepository concertCacheRepository;
+
+    @Autowired
+    ScheduleCacheRepository scheduleCacheRepository;
+
+    @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
+    RedisTemplate redisTemplate;
+
     private static final Logger logger = LoggerFactory.getLogger(ConcertFacadeIntegrationTest.class);
 
     @BeforeEach
     void init() {
+
+        //redis data 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
         User user = UserFixture.createUser(1, "유저1", 1, 10000l);
         pointRepository.save(user.getPoint());
         userRepository.save(user);
@@ -262,7 +282,7 @@ public class ConcertFacadeIntegrationTest {
     void 결제_성공() {
         //given
         Integer userId = 1;
-
+        User user = userRepository.findById(userId);
         Seat seat = SeatFixture.createSeat(1, 1, 1, 1,  Seat.State.RESERVED,8000l, "A");
         seatRepository.save(seat);
 
@@ -271,12 +291,14 @@ public class ConcertFacadeIntegrationTest {
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
 
         //when
-        payment = concertFacade.pay(payment);
+        payment = concertFacade.pay(payment, token.getTokenKey());
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertNotNull(payment.getId());
         assertEquals(10000-8000, user.getPoint().getAmount());
@@ -287,16 +309,21 @@ public class ConcertFacadeIntegrationTest {
     void 결제실패_예약정보없음() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Payment payment =  PaymentFixture.createPayment(null, userId, 1, LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
@@ -308,20 +335,24 @@ public class ConcertFacadeIntegrationTest {
     void 결제시간만료_실패() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Reservation reservation =
                 ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.EXPIRED, 8000l, "A", LocalDateTime.now().minusMinutes(10));
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
         assertEquals(10000, user.getPoint().getAmount());
@@ -333,18 +364,23 @@ public class ConcertFacadeIntegrationTest {
     void 결제_잔액부족() {
         //given
         Integer userId = 1;
+        User user = userRepository.findById(userId);
 
         Reservation reservation = ReservationFixture.creasteReservation(null, userId,1, 1, 1, 1, Reservation.State.WAITING, 12000l, "A", LocalDateTime.now());
         reservation = reservationRepository.save(reservation);
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
-        User user = userRepository.findById(userId);
+        user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getStatus(), exception.getCustomExceptionCode().getStatus());
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getMessage(), exception.getCustomExceptionCode().getMessage().toString());
@@ -358,15 +394,22 @@ public class ConcertFacadeIntegrationTest {
         Integer userId = 1;
         Integer userId2 = 2;
 
+        User user = userRepository.findById(userId);
+        User user2 = userRepository.findById(userId2);
+
         Reservation reservation =
                 ReservationFixture.creasteReservation(null, userId2, 1, 1, 1, 1, Reservation.State.WAITING, 8000l, "A", LocalDateTime.now());
         reservation = reservationRepository.save(reservation);
 
         Payment payment = PaymentFixture.createPayment(null, userId, reservation.getId(), LocalDateTime.now());
+        Token token = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(), null);
+        token = tokenRepository.save(token);
+        UUID tokenKey = token.getTokenKey();
+
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(payment);
+            concertFacade.pay(payment, tokenKey);
         });
 
         //then
@@ -383,7 +426,8 @@ public class ConcertFacadeIntegrationTest {
         seatRepository.save(seat);
 
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
-        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), userId, countDownLatch)))
+//        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), userId, countDownLatch)))
+        List<Thread> workers = Stream.generate(() -> new Thread(new ReserveSeatRunner(seat.getId(), (int)(Math.random()) * 100 + 1, countDownLatch)))
                 .limit(threadCount) // 쓰레드를  생성
                 .collect(Collectors.toList());
 
@@ -429,6 +473,10 @@ public class ConcertFacadeIntegrationTest {
         //given
         int threadCount = 100;
         int userId = 1;
+        User user = new User();
+        user.setId(userId);
+
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
 
         List<Payment> payments = new ArrayList<>();
 
@@ -445,7 +493,7 @@ public class ConcertFacadeIntegrationTest {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
         List<Thread> workers = new ArrayList<>();
         for (Payment payment : payments) {
-            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+            workers.add( new Thread(new PayRunner(payment, token.getTokenKey(), countDownLatch)));
         }
 
         //when
@@ -455,7 +503,7 @@ public class ConcertFacadeIntegrationTest {
         long endTime = System.currentTimeMillis();
         logger.info("시트_결제_동시성_테스트_예약한_모든좌석구매 100번 run time : {}", endTime - startTime);
 
-        User user = userRepository.findById(1);
+        user = userRepository.findById(1);
 
         logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
 
@@ -473,6 +521,11 @@ public class ConcertFacadeIntegrationTest {
         int threadCount = 100;
         int userId = 1;
 
+        User user = new User();
+        user.setId(userId);
+
+        Token token = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(), null);
+
         List<Payment> payments = new ArrayList<>();
 
         for (int i =1; i<= threadCount; i++) {
@@ -488,7 +541,7 @@ public class ConcertFacadeIntegrationTest {
         CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
         List<Thread> workers = new ArrayList<>();
         for (Payment payment : payments) {
-            workers.add( new Thread(new PayRunner(payment, countDownLatch)));
+            workers.add( new Thread(new PayRunner(payment, token.getTokenKey(), countDownLatch)));
         }
 
         //when
@@ -498,7 +551,7 @@ public class ConcertFacadeIntegrationTest {
         long endTime = System.currentTimeMillis();
         logger.info("시트_결제_동시성_테스트_결제중_잔액부족 run time : {}", endTime - startTime);
 
-        User user = userRepository.findById(1);
+        user = userRepository.findById(1);
 
         logger.info("user info id : {}, point amount {}", user.getId(), user.getPoint().getAmount());
 
@@ -512,17 +565,19 @@ public class ConcertFacadeIntegrationTest {
 
     private class PayRunner implements Runnable {
         private CountDownLatch countDownLatch;
+        private UUID tokenKey;
         private Payment payment;
 
-        public PayRunner(Payment payment, CountDownLatch countDownLatch) {
+        public PayRunner(Payment payment, UUID tokenKey, CountDownLatch countDownLatch) {
             this.payment = payment;
+            this.tokenKey = tokenKey;
             this.countDownLatch = countDownLatch;
         }
 
         @Override
         public void run()  {
             try {
-                concertFacade.pay(payment);
+                concertFacade.pay(payment,tokenKey);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -530,5 +585,248 @@ public class ConcertFacadeIntegrationTest {
         }
     }
 
+
+    /**
+     * case1 : db에만 넣고 조회 -> 조회성공
+     * case2 : db에만 넣고 캐시에서 조회되는 확인
+     * case3 : 속도비교
+     * */
+
+
+    @Test
+    void 콘서트_db에만_넣고_조회_성공() {
+        //given
+        Concert concert1 = ConcertFixture.createConcert(1, "concert A");
+        Concert concert2 = ConcertFixture.createConcert(2, "concert B");
+        concertRepository.save(concert1);
+        concertRepository.save(concert2);
+
+        //when
+        List<Concert> concerts = concertFacade.getConcertList();
+
+        //then
+        assertEquals(2, concerts.size());
+        assertEquals(1, concerts.get(0).getId());
+        assertEquals("concert A", concerts.get(0).getName());
+        assertEquals(2, concerts.get(1).getId());
+        assertEquals("concert B", concerts.get(1).getName());
+
+    }
+
+    @Test
+    void 콘서트_db에만_넣고_캐시에서조회_실패() {
+        //given
+        Concert concert1 = ConcertFixture.createConcert(1, "concert A");
+        Concert concert2 = ConcertFixture.createConcert(2, "concert B");
+        concertRepository.save(concert1);
+        concertRepository.save(concert2);
+
+        //when
+        List<Concert> concerts = concertCacheRepository.findConcerts();
+
+        //then
+        assertEquals(0, concerts.size());
+    }
+
+    @Test
+    void DB만_이용하여_100개의_콘서트_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+
+        for (int i=1; i <= 100; i++) {
+            Concert concert = ConcertFixture.createConcert(i, "concert "+i);
+            concertRepository.save(concert);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ConcertFindRunner(countDownLatch)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("DB만_이용하여_100개의_콘서트_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+    @Test
+    void 캐시를_이용하여_100개의_콘서트_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+
+        for (int i=1; i <= 100; i++) {
+            Concert concert = ConcertFixture.createConcert(i, "concert "+i);
+            concertRepository.save(concert);
+            concertCacheRepository.saveConcert(concert);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ConcertFindRunner(countDownLatch)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("캐시를_이용하여_100개의_콘서트_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+    private class ConcertFindRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+
+        public ConcertFindRunner(CountDownLatch countDownLatch) {
+            this.countDownLatch = countDownLatch;
+        }
+
+        @Override
+        public void run()  {
+            try {
+                concertFacade.getConcertList();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
+    }
+
+    @Test
+    void 스케쥴_db에만_넣고_조회_성공() {
+        //given
+        int concertId = 1;
+        Schedule schedule1 = ScheduleFixture.createSchedule(1, concertId, LocalDateTime.of(2024,1,1,13,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(2, concertId, LocalDateTime.of(2024,2,1,13,0));
+        Schedule schedule3 = ScheduleFixture.createSchedule(3, concertId, LocalDateTime.of(2024,3,1,13,0));
+
+        scheduleRepository.save(schedule1);
+        scheduleRepository.save(schedule2);
+        scheduleRepository.save(schedule3);
+        Seat seat1 = SeatFixture.createSeat(1, concertId, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, concertId, 2, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat3 = SeatFixture.createSeat(3, concertId, 3, 1, Seat.State.RESERVED, 1000l, "A");
+        seatRepository.save(seat1);
+        seatRepository.save(seat2);
+        seatRepository.save(seat3);
+
+        //when
+        List<Schedule> schedules = concertFacade.getAvailableScheduleList(concertId);
+
+        //then
+        assertEquals(2, schedules.size());
+        assertEquals(1, schedules.get(0).getId());
+        assertEquals(2, schedules.get(1).getId());
+
+    }
+
+    @Test
+    void 스케쥴_db에만_넣고_캐시에서조회_실패() {
+        //given
+        int concertId = 1;
+        Schedule schedule1 = ScheduleFixture.createSchedule(1, concertId, LocalDateTime.of(2024,1,1,13,0));
+        Schedule schedule2 = ScheduleFixture.createSchedule(2, concertId, LocalDateTime.of(2024,2,1,13,0));
+        Schedule schedule3 = ScheduleFixture.createSchedule(3, concertId, LocalDateTime.of(2024,3,1,13,0));
+
+        scheduleRepository.save(schedule1);
+        scheduleRepository.save(schedule2);
+        scheduleRepository.save(schedule3);
+        Seat seat1 = SeatFixture.createSeat(1, concertId, 1, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat2 = SeatFixture.createSeat(2, concertId, 2, 1, Seat.State.EMPTY, 1000l, "A");
+        Seat seat3 = SeatFixture.createSeat(3, concertId, 3, 1, Seat.State.RESERVED, 1000l, "A");
+        seatRepository.save(seat1);
+        seatRepository.save(seat2);
+        seatRepository.save(seat3);
+
+        //when
+        List<Schedule> schedules = scheduleCacheRepository.findSchedulesByConcertId(concertId);
+
+        //then
+        assertEquals(0, schedules.size());
+
+    }
+
+
+    @Test
+    void DB만_이용하여_100개의_이용가능_스케쥴_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+        Concert concert = ConcertFixture.createConcert(1, "concert A");
+        concertRepository.save(concert);
+
+        for (int i=1; i <= 100; i++) {
+            Schedule schedule = ScheduleFixture.createSchedule(i, 1,LocalDateTime.of(2024, (i%11) +1,(i%27) + 1, (i%23) + 1,0));
+            Seat seat = SeatFixture.createSeat(i, 1, i, 1, Seat.State.EMPTY, 1000l, "A");
+            scheduleRepository.save(schedule);
+            seatRepository.save(seat);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ScheduleFindRunner(countDownLatch, 1)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("DB만_이용하여_100개의_이용가능_스케쥴_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+
+    @Test
+    void 캐시를_이용하여_100개의_이용가능_스케쥴_1000명_조회 () throws Exception {
+        //given
+        int threadCount = 1000;
+        Concert concert = ConcertFixture.createConcert(1, "concert A");
+        concertRepository.save(concert);
+
+        for (int i=1; i <= 100; i++) {
+            Schedule schedule = ScheduleFixture.createSchedule(i, 1,LocalDateTime.of(2024, (i%11) +1,(i%27) + 1, (i%23) + 1,0));
+            Seat seat = SeatFixture.createSeat(i, 1, i, 1, Seat.State.EMPTY, 1000l, "A");
+            scheduleRepository.save(schedule);
+            scheduleCacheRepository.saveSchedule(schedule);
+            seatRepository.save(seat);
+        }
+
+        CountDownLatch countDownLatch = new CountDownLatch(threadCount); // countdown을  설정
+        List<Thread> workers = new ArrayList<>();
+        for (int i=0; i<threadCount; i++) {
+            workers.add( new Thread(new ScheduleFindRunner(countDownLatch, 1)));
+        }
+
+        //when
+        long startTime = System.currentTimeMillis();
+        workers.forEach(Thread::start); // 모든 쓰레드 시작
+        countDownLatch.await(); // countdown이 0이 될때까지 대기한다는 의미
+        long endTime = System.currentTimeMillis();
+        logger.info("캐시를_이용하여_100개의_이용가능_스케쥴_1000명_조회 run time :: {} ", endTime - startTime);
+    }
+
+
+    private class ScheduleFindRunner implements Runnable {
+        private CountDownLatch countDownLatch;
+        private int concertId;
+
+        public ScheduleFindRunner(CountDownLatch countDownLatch, Integer concertId) {
+            this.countDownLatch = countDownLatch;
+            this.concertId = concertId;
+        }
+
+        @Override
+        public void run()  {
+            try {
+                concertFacade.getAvailableScheduleList(concertId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            countDownLatch.countDown();
+        }
+    }
 
 }

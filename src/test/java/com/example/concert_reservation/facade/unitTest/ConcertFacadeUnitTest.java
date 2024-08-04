@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -244,7 +245,7 @@ public class ConcertFacadeUnitTest {
         expectedPoint.setUserId(1);
         expectedPoint.setAmount(expectedPoint.getAmount() - expectedReservation.getPrice());
 
-        Seat expectedSeat = SeatFixture.createSeat(1, 1, 1, 1, Seat.State.RESERVED, 10000l, "A");
+        UUID tokenKey = UUID.randomUUID();
 
         when(reservationService.getReservation(any())).thenReturn(expectedReservation);
         when(userService.getUser(any())).thenReturn(expectedUser);
@@ -252,7 +253,7 @@ public class ConcertFacadeUnitTest {
         when(paymentService.pay(any())).thenReturn(expectedPayment);
 
         //when
-        Payment payment = concertFacade.pay(requestPayment);
+        Payment payment = concertFacade.pay(requestPayment, tokenKey);
 
         //then
         assertEquals(1, payment.getId());
@@ -267,12 +268,13 @@ public class ConcertFacadeUnitTest {
         Payment requestPayment = new Payment();
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
+        UUID tokenKey = UUID.randomUUID();
 
         when(reservationService.getReservation(any())).thenThrow(new CustomException(CustomExceptionCode.RESERVATION_NOT_FOUND));
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(requestPayment);
+            concertFacade.pay(requestPayment,tokenKey);
         });
         //then
         assertEquals(CustomExceptionCode.RESERVATION_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
@@ -287,6 +289,8 @@ public class ConcertFacadeUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
+        UUID tokenKey = UUID.randomUUID();
+
         Reservation expectedReservation =
                 ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.EXPIRED, 10000l, "A", LocalDateTime.now().minusMinutes(8));
 
@@ -294,7 +298,7 @@ public class ConcertFacadeUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(requestPayment);
+            concertFacade.pay(requestPayment,tokenKey);
         });
         //then
         assertEquals(CustomExceptionCode.PAYMENT_TIME_EXPIRE.getStatus(), exception.getCustomExceptionCode().getStatus());
@@ -310,6 +314,8 @@ public class ConcertFacadeUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
+        UUID tokenKey = UUID.randomUUID();
+
         Reservation expectedReservation =
                 ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.WAITING, 10000l, "A", LocalDateTime.now().minusMinutes(3));
 
@@ -323,7 +329,7 @@ public class ConcertFacadeUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(requestPayment);
+            concertFacade.pay(requestPayment, tokenKey);
         });
         //then
         assertEquals(CustomExceptionCode.USER_POINT_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
@@ -338,6 +344,8 @@ public class ConcertFacadeUnitTest {
         requestPayment.setUserId(1);
         requestPayment.setReservationId(1);
 
+        UUID tokenKey = UUID.randomUUID();
+
         Reservation expectedReservation =
                 ReservationFixture.creasteReservation(1, 1, 1, 1, 1, 1, Reservation.State.WAITING, 10000l, "A", LocalDateTime.now().minusMinutes(3));
 
@@ -350,7 +358,7 @@ public class ConcertFacadeUnitTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            concertFacade.pay(requestPayment);
+            concertFacade.pay(requestPayment, tokenKey);
         });
         //then
         assertEquals(CustomExceptionCode.POINT_NOT_ENOUGH.getStatus(), exception.getCustomExceptionCode().getStatus());

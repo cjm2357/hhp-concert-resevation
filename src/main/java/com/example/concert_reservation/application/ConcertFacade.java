@@ -4,15 +4,18 @@ import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ConcertFacade {
 
     private final UserService userService;
@@ -24,25 +27,6 @@ public class ConcertFacade {
     private final PaymentService paymentService;
     private final TokenService tokenService;
 
-    public ConcertFacade(
-            UserService userService,
-            PointService pointService,
-            ConcertService concertService,
-            ScheduleService scheduleService,
-            SeatService seatService,
-            ReservationService reservationService,
-            PaymentService paymentService,
-            TokenService tokenService
-    ) {
-        this.userService = userService;
-        this.pointService = pointService;
-        this.concertService = concertService;
-        this.scheduleService = scheduleService;
-        this.seatService = seatService;
-        this.reservationService = reservationService;
-        this.paymentService = paymentService;
-        this.tokenService = tokenService;
-    }
 
     public List<Concert> getConcertList() {
         return concertService.getConcertList();
@@ -81,7 +65,7 @@ public class ConcertFacade {
         return reservation;
     }
 
-    public Payment pay(Payment payment) {
+    public Payment pay(Payment payment, UUID tokenKey) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
         reservation.isNotExpired();
 
@@ -97,7 +81,7 @@ public class ConcertFacade {
         seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
         payment = paymentService.pay(payment);
         reservationService.changeReservationInfo(reservation);
-        tokenService.updateStateToExpiredByUserId(user.getId());
+        tokenService.expireToken(tokenKey);
 
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;

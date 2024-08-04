@@ -26,7 +26,8 @@ public class PointService {
 
     @Transactional
     public Point savePoint(User user, Long amount){
-        Point point = pointRepository.findByUserIdWithLock(user.getId());
+//        Point point = pointRepository.findByUserIdWithLock(user.getId());
+        Point point = pointRepository.findByUserId(user.getId());
         point.setAmount(point.getAmount() + amount);
         point = pointRepository.save(point);
         return point;

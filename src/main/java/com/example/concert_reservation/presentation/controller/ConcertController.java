@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -85,7 +86,8 @@ public class ConcertController {
         // 결제 API
     @PostMapping("/payment")
     public ResponseEntity<?> pay(
-            @RequestBody PaymentRequestDto dto
+            @RequestBody PaymentRequestDto dto,
+            @RequestHeader(value = "Authorization", required = true) UUID tokenKey
     ) {
         if (dto.getUserId() == null || dto.getUserId() < 0) {
             log.warn("no user id");
@@ -96,7 +98,7 @@ public class ConcertController {
             throw new CustomException(CustomExceptionCode.INVALID_RESERVATION_ID);
         }
 
-        Payment payment = concertFacade.pay(dto.toEntity());
+        Payment payment = concertFacade.pay(dto.toEntity(), tokenKey);
         PaymentResponseDto responseDto = new PaymentResponseDto(payment);
         return ResponseEntity.ok(responseDto);
     }

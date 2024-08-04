@@ -6,6 +6,7 @@ import com.example.concert_reservation.domain.entity.Reservation;
 import com.example.concert_reservation.domain.service.repository.ReservationRepository;
 import com.example.concert_reservation.domain.service.repository.SeatRepository;
 import com.example.concert_reservation.domain.entity.Seat;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,16 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class SeatService {
 
     private final SeatRepository seatRepository;
-    private final ReservationRepository reservationRepository;
 
-    public SeatService(SeatRepository seatRepository, ReservationRepository reservationRepository) {
-        this.seatRepository = seatRepository;
-        this.reservationRepository = reservationRepository;
-    }
 
     public Seat getSeatById(Integer seatId) {
         Seat seat = seatRepository.findById(seatId);
@@ -43,7 +40,7 @@ public class SeatService {
 
     @Transactional
     public Seat updateSeatState(Integer seatId, Seat.State state) {
-        Seat seat = seatRepository.findById(seatId);
+        Seat seat = seatRepository.findAvailableSeat(seatId);
         if (seat == null) {
             log.warn("not found seat of {}", seatId);
             throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);

@@ -10,17 +10,19 @@ import com.example.concert_reservation.domain.service.repository.TokenRepository
 import com.example.concert_reservation.domain.service.repository.UserRepository;
 import com.example.concert_reservation.fixture.TokenFixture;
 import com.example.concert_reservation.fixture.UserFixture;
+import com.example.concert_reservation.repository.TokenRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static java.util.Objects.requireNonNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -38,24 +40,35 @@ public class TokenFacadeIntegrationTest {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    TokenRedisRepository tokenRedisRepository;
+
+    @Autowired
+    RedisTemplate redisTemplate;
+
     @BeforeEach
     void init() {
+
+        //redis data 초기화
+        redisTemplate.getConnectionFactory().getConnection().flushAll();
+
         User user = UserFixture.createUser(1, "유저1", 1, 10000l);
         pointRepository.save(user.getPoint());
         userRepository.save(user);
+
     }
 
     @Test
-    void 토큰발급후_대기없을때_바로_active() {
+    void 토큰발급후_대기() {
         //given
         Integer userId = 1;
 
         //when
-        Token token = tokenFacade.getToken(userId);
+        Token token = tokenFacade.createToken(userId);
 
         //then
         assertEquals(userId, token.getUser().getId());
-        assertEquals(0, token.getOrder());
+        assertNotEquals(0, token.getOrder());
     }
 
     @Test
@@ -65,7 +78,7 @@ public class TokenFacadeIntegrationTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenFacade.getToken(userId);
+            tokenFacade.createToken(userId);
         });
 
         //then
@@ -75,17 +88,17 @@ public class TokenFacadeIntegrationTest {
     }
 
     @Test
-    void 토큰상태변경및_조회_성공() {
+    void 토큰상태_조회_성공() {
         //given
         Integer userId = 1;
-        Token tokenInfo = tokenFacade.getToken(userId);
+        Token tokenInfo = tokenFacade.createToken(userId);
 
         //when
-        Token token = tokenFacade.getTokenStatusAndUpdate(tokenInfo.getTokenKey());
+        Token token = tokenFacade.getTokenStatus(tokenInfo.getTokenKey());
 
         //then
         assertEquals(userId, tokenInfo.getUser().getId());
-        assertEquals(token.getOrder(), 0);
+        assertEquals(Token.TokenState.WAITING, token.getState());
 
     }
 
@@ -96,7 +109,7 @@ public class TokenFacadeIntegrationTest {
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenFacade.getTokenStatusAndUpdate(tokenKey);
+            tokenFacade.getTokenStatus(tokenKey);
         });
 
         //then
@@ -111,16 +124,15 @@ public class TokenFacadeIntegrationTest {
         UUID tokenKey = UUID.randomUUID();
         User user = userRepository.findById(1);
         Token token = TokenFixture.createToken(null, user, tokenKey, LocalDateTime.now().minusMinutes(20), Token.TokenState.EXPIRED);
-        tokenRepository.save(token);
 
         //when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            tokenFacade.getTokenStatusAndUpdate(tokenKey);
+            tokenFacade.getTokenStatus(tokenKey);
         });
 
         //then
-        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getStatus(), exception.getCustomExceptionCode().getStatus());
-        assertEquals(CustomExceptionCode.TOKEN_NOT_VALID.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage().toString(), exception.getCustomExceptionCode().getMessage());
 
     }
 
@@ -135,17 +147,17 @@ public class TokenFacadeIntegrationTest {
             user.setId(i+1);
             user.setName("유저" +(i+1));
             userRepository.save(user);
-            tokenFacade.getToken(i);
+            tokenFacade.createToken(i);
         }
 
         int userId = 61;
 
         //when
-        Token token = tokenFacade.getToken(userId);
+        Token token = tokenFacade.createToken(userId);
 
         //then
         assertEquals(userId, token.getUser().getId());
-        assertEquals(token.getOrder(), 61-50);
+        assertEquals(token.getOrder(), 61);
     }
 
     @Test
@@ -161,21 +173,33 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
-        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now().minusMinutes(13), Token.TokenState.ACTIVATE);
-        tokenRepository.save(token1);
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
-        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now().minusMinutes(11), Token.TokenState.ACTIVATE);
-        tokenRepository.save(token2);
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
+        tokenRedisRepository.activateTokens(2);
 
         //when
-        tokenFacade.expireToken();
+        tokenFacade.expireToken(token1.getTokenKey());
+        tokenFacade.expireToken(token2.getTokenKey());
 
         //then
-        token1 = tokenRepository.findByTokenKey(token1.getTokenKey());
-        token2 = tokenRepository.findByTokenKey(token2.getTokenKey());
+        UUID tokenKey1 =token1.getTokenKey();
+        UUID tokenKey2 =token2.getTokenKey();
 
-        assertEquals(Token.TokenState.EXPIRED, token1.getState());
-        assertEquals(Token.TokenState.EXPIRED, token2.getState());
+        CustomException exception1 = assertThrows(CustomException.class, () -> {
+            tokenFacade.getTokenStatus(tokenKey1);
+        });
+        CustomException exception2 = assertThrows(CustomException.class, () -> {
+            tokenFacade.getTokenStatus(tokenKey2);
+        });
+
+        //then
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception1.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage().toString(), exception1.getCustomExceptionCode().getMessage());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getStatus(), exception2.getCustomExceptionCode().getStatus());
+        assertEquals(CustomExceptionCode.TOKEN_NOT_FOUND.getMessage().toString(), exception2.getCustomExceptionCode().getMessage());
 
     }
 
@@ -193,18 +217,19 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
-        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now().minusMinutes(13), Token.TokenState.WAITING);
-        tokenRepository.save(token1);
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
-        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now().minusMinutes(11), Token.TokenState.WAITING);
-        tokenRepository.save(token2);
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
 
         //when
-        tokenFacade.expireToken();
+        tokenFacade.expireToken(token1.getTokenKey());
+        tokenFacade.expireToken(token2.getTokenKey());
 
         //then
-        token1 = tokenRepository.findByTokenKey(token1.getTokenKey());
-        token2 = tokenRepository.findByTokenKey(token2.getTokenKey());
+        token1 = tokenFacade.getTokenStatus(token1.getTokenKey());
+        token2 = tokenFacade.getTokenStatus(token2.getTokenKey());
 
         assertEquals(Token.TokenState.WAITING, token1.getState());
         assertEquals(Token.TokenState.WAITING, token2.getState());
@@ -224,29 +249,21 @@ public class TokenFacadeIntegrationTest {
         user2.setName("유저3" );
         user2 = userRepository.save(user2);
 
-        User user3 = new User();
-        user3.setId(4);
-        user3.setName("유저4" );
-        user3 = userRepository.save(user3);
+        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now(),null);
+        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now(),null);
 
-        Token token1 = TokenFixture.createToken(null, user, UUID.randomUUID(), LocalDateTime.now().minusMinutes(13), Token.TokenState.EXPIRED);
-        token1 = tokenRepository.save(token1);
-
-        Token token2 = TokenFixture.createToken(null, user2, UUID.randomUUID(), LocalDateTime.now().minusMinutes(10), Token.TokenState.WAITING);
-        token2 = tokenRepository.save(token2);
-
-        Token token3 = TokenFixture.createToken(null, user3, UUID.randomUUID(), LocalDateTime.now().minusMinutes(1), Token.TokenState.ACTIVATE);
-        token3 = tokenRepository.save(token3);
+        token1 = tokenRedisRepository.createToken(token1);
+        token2 = tokenRedisRepository.createToken(token2);
+        tokenRedisRepository.activateTokens(1);
 
         //when
-        token1 = tokenFacade.getTokenInfo(token1.getTokenKey());
-        token2 = tokenFacade.getTokenInfo(token2.getTokenKey());
-        token3 = tokenFacade.getTokenInfo(token3.getTokenKey());
+        token1 = tokenFacade.getTokenStatus(token1.getTokenKey());
+        token2 = tokenFacade.getTokenStatus(token2.getTokenKey());
 
         //then
-        assertEquals(Token.TokenState.EXPIRED, token1.getState());
+        assertEquals(Token.TokenState.ACTIVATE, token1.getState());
         assertEquals(Token.TokenState.WAITING, token2.getState());
-        assertEquals(Token.TokenState.ACTIVATE, token3.getState());
 
     }
+
 }

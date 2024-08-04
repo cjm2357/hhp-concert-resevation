@@ -3,6 +3,8 @@ package com.example.concert_reservation.repository.impl;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.repository.TokenJpaRepository;
 import com.example.concert_reservation.domain.service.repository.TokenRepository;
+import com.example.concert_reservation.repository.TokenRedisRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -11,25 +13,18 @@ import java.util.UUID;
 
 
 @Repository
+@RequiredArgsConstructor
 public class TokenRepositoryImpl implements TokenRepository{
 
     private final TokenJpaRepository tokenJpaRepository;
-
-    public TokenRepositoryImpl(TokenJpaRepository tokenJpaRepository) {
-        this.tokenJpaRepository = tokenJpaRepository;
-    }
+    private final TokenRedisRepository tokenRedisRepository;
 
     public Token save(Token token) {
-        return tokenJpaRepository.save(token);
+        return tokenRedisRepository.createToken(token);
     };
 
-
-    public Token findFirstByStateOrderByIdDesc(Token.TokenState tokenState) {
-        return tokenJpaRepository.findFirstByStateOrderByIdDesc(tokenState);
-    }
-
     public Token findByTokenKey(UUID key) {
-        return tokenJpaRepository.findByTokenKey(key);
+        return tokenRedisRepository.getTokenStatus(key);
     }
 
     public List<Token> findByStateOrderById(Token.TokenState state) {
@@ -40,8 +35,12 @@ public class TokenRepositoryImpl implements TokenRepository{
         tokenJpaRepository.updateStateExpired(localDateTime);
     }
 
+    public void expireToken(UUID tokenKey) {tokenRedisRepository.expireToken(tokenKey);}
+
     public void updateStateToExpiredByUserId(Integer userId) {
         tokenJpaRepository.updateStateToExpiredByUserId(userId);
     }
+
+    public void activateTokens(Integer activateCount) { tokenRedisRepository.activateTokens(activateCount);}
 
 }

@@ -24,22 +24,24 @@ public class TokenFacade {
     }
 
     @Transactional
-    public Token getToken(Integer userId) {
+    public Token createToken(Integer userId) {
         User user = userService.getUser(userId);
-        Token token = tokenService.getToken(userId);
+        Token token = tokenService.createToken(user);
         log.info("{} user get {} token", userId, token.getTokenKey());
        return token;
     }
 
-    @Transactional
-    public Token getTokenStatusAndUpdate(UUID key) {
-       return tokenService.getTokenStatusAndUpdate(key);
+    public Token getTokenStatus(UUID key) {
+        return tokenService.getTokenStatus(key);
     }
 
-    public Token getTokenInfo(UUID tokenKey) { return tokenService.getTokenInfo(tokenKey);}
 
-    public void expireToken() {
+    public void expireToken(UUID tokenKey) {
         //ACTIVATE 토큰만 만료시간이 되면 만료시킨다.
-        tokenService.expireToken();
+        tokenService.expireToken(tokenKey);
+    }
+
+    public void activateTokens(Integer activateCount) {
+        tokenService.activateTokens(activateCount);
     }
 }

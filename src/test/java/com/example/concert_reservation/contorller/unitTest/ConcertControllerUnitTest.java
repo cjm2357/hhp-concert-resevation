@@ -250,7 +250,7 @@ public class ConcertControllerUnitTest {
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
         when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
-        when(concertFacade.pay(any())).thenReturn(payment);
+        when(concertFacade.pay(any(), any())).thenReturn(payment);
 
         //when
         //then
@@ -278,7 +278,7 @@ public class ConcertControllerUnitTest {
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
         when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
-        when(concertFacade.pay(any())).thenReturn(payment);
+        when(concertFacade.pay(any(), any())).thenReturn(payment);
 
         //when
         //then
@@ -304,7 +304,7 @@ public class ConcertControllerUnitTest {
         Payment payment = PaymentFixture.createPayment(1, userId, reservationId, LocalDateTime.now());
 
         when(tokenInterceptor.preHandle(any(), any(), any())).thenReturn(true);
-        when(concertFacade.pay(any())).thenReturn(payment);
+        when(concertFacade.pay(any(), any())).thenReturn(payment);
 
         //when
         //then

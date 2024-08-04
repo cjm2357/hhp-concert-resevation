@@ -23,7 +23,9 @@ public enum CustomExceptionCode {
     INVALID_CONCERT_ID(400, "INVALID_CONCERT_ID", "유효하지않은 콘서트ID 입니다."),
     INVALID_SCHEDULE_ID(400, "INVALID_SCHEDULE_ID", "유효하지않은 스케쥴ID 입니다."),
     INVALID_SEAT_ID(400, "INVALID_SEAT_ID", "유효하지않은 좌석ID 입니다."),
-    INVALID_RESERVATION_ID(400, "INVALID_RESERVATION_ID", "유효하지않은 예약ID 입니다.")
+    INVALID_RESERVATION_ID(400, "INVALID_RESERVATION_ID", "유효하지않은 예약ID 입니다."),
+    INVALID_JSON_TYPE(500,"INVALID_JSON_TYPE", "조회한 데이터가 Object로 변환 될 수 없는 구조입닙다."),
+    INVALID_OBJECT_TYPE(500,"INVALID_OBJECT_TYPE", "JSON Stringify 변환이 실패하였습니다.")
 
     ;
 
