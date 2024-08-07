@@ -1,9 +1,7 @@
 package com.example.concert_reservation.repository.token;
 
 import com.example.concert_reservation.domain.entity.Token;
-import com.example.concert_reservation.repository.token.TokenJpaRepository;
-import com.example.concert_reservation.domain.service.token.TokenRepository;
-import com.example.concert_reservation.repository.token.TokenRedisRepository;
+import com.example.concert_reservation.domain.token.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

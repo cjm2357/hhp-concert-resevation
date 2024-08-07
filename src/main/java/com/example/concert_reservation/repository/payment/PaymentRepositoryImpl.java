@@ -2,7 +2,7 @@ package com.example.concert_reservation.repository.payment;
 
 
 import com.example.concert_reservation.domain.entity.Payment;
-import com.example.concert_reservation.domain.service.payment.PaymentRepository;
+import com.example.concert_reservation.domain.payment.PaymentRepository;
 import org.springframework.stereotype.Repository;
 
 

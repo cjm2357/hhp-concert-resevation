@@ -1,4 +1,4 @@
-package com.example.concert_reservation.domain.service.point;
+package com.example.concert_reservation.domain.point;
 
 import com.example.concert_reservation.domain.entity.Point;
 

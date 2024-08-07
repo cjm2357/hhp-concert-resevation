@@ -2,8 +2,7 @@ package com.example.concert_reservation.repository.point;
 
 
 import com.example.concert_reservation.domain.entity.Point;
-import com.example.concert_reservation.repository.point.PointJpaRepository;
-import com.example.concert_reservation.domain.service.point.PointRepository;
+import com.example.concert_reservation.domain.point.PointRepository;
 import org.springframework.stereotype.Repository;
 
 

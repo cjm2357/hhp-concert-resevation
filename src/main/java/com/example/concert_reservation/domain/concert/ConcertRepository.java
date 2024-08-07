@@ -1,4 +1,4 @@
-package com.example.concert_reservation.domain.service.concert;
+package com.example.concert_reservation.domain.concert;
 
 import com.example.concert_reservation.domain.entity.Concert;
 

@@ -1,4 +1,4 @@
-package com.example.concert_reservation.domain.service.user;
+package com.example.concert_reservation.domain.user;
 
 import com.example.concert_reservation.domain.entity.User;
 

@@ -1,8 +1,8 @@
 package com.example.concert_reservation.service.unitTest;
 
 import com.example.concert_reservation.domain.entity.Payment;
-import com.example.concert_reservation.domain.service.payment.PaymentService;
-import com.example.concert_reservation.domain.service.payment.PaymentRepository;
+import com.example.concert_reservation.domain.payment.PaymentService;
+import com.example.concert_reservation.domain.payment.PaymentRepository;
 import com.example.concert_reservation.fixture.PaymentFixture;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

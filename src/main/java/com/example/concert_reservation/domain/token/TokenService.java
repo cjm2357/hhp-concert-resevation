@@ -1,4 +1,4 @@
-package com.example.concert_reservation.domain.service.token;
+package com.example.concert_reservation.domain.token;
 
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;

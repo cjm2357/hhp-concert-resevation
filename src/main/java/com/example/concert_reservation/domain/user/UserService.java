@@ -1,9 +1,8 @@
-package com.example.concert_reservation.domain.service.user;
+package com.example.concert_reservation.domain.user;
 
 
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
-import com.example.concert_reservation.domain.service.user.UserRepository;
 import com.example.concert_reservation.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -1,11 +1,10 @@
-package com.example.concert_reservation.domain.service.point;
+package com.example.concert_reservation.domain.point;
 
 
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
-import com.example.concert_reservation.domain.service.point.PointRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
