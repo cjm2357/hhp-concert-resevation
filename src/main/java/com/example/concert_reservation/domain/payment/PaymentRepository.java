@@ -1,4 +1,4 @@
-package com.example.concert_reservation.domain.service.payment;
+package com.example.concert_reservation.domain.payment;
 
 import com.example.concert_reservation.domain.entity.Payment;
 

@@ -3,7 +3,7 @@ package com.example.concert_reservation.contorller.unitTest;
 
 import com.example.concert_reservation.application.concert.ConcertFacade;
 import com.example.concert_reservation.domain.entity.*;
-import com.example.concert_reservation.domain.service.concert.ConcertService;
+import com.example.concert_reservation.domain.concert.ConcertService;
 import com.example.concert_reservation.dto.PaymentRequestDto;
 import com.example.concert_reservation.dto.SeatReservationRequestDto;
 import com.example.concert_reservation.fixture.ConcertFixture;

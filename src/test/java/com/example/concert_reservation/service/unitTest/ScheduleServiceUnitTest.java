@@ -2,8 +2,8 @@ package com.example.concert_reservation.service.unitTest;
 
 import com.example.concert_reservation.domain.entity.Schedule;
 import com.example.concert_reservation.fixture.ScheduleFixture;
-import com.example.concert_reservation.domain.service.schedule.ScheduleService;
-import com.example.concert_reservation.domain.service.schedule.ScheduleRepository;
+import com.example.concert_reservation.domain.schedule.ScheduleService;
+import com.example.concert_reservation.domain.schedule.ScheduleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

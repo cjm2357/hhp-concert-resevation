@@ -1,7 +1,7 @@
 package com.example.concert_reservation.repository.user;
 
 import com.example.concert_reservation.domain.entity.User;
-import com.example.concert_reservation.domain.service.user.UserRepository;
+import com.example.concert_reservation.domain.user.UserRepository;
 import org.springframework.stereotype.Repository;
 
 

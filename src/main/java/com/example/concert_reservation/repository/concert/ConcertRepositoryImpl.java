@@ -1,9 +1,7 @@
 package com.example.concert_reservation.repository.concert;
 
 import com.example.concert_reservation.domain.entity.Concert;
-import com.example.concert_reservation.repository.concert.ConcertCacheRepository;
-import com.example.concert_reservation.repository.concert.ConcertJpaRepository;
-import com.example.concert_reservation.domain.service.concert.ConcertRepository;
+import com.example.concert_reservation.domain.concert.ConcertRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;

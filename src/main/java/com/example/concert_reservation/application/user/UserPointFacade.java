@@ -2,8 +2,8 @@ package com.example.concert_reservation.application.user;
 
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
-import com.example.concert_reservation.domain.service.point.PointService;
-import com.example.concert_reservation.domain.service.user.UserService;
+import com.example.concert_reservation.domain.point.PointService;
+import com.example.concert_reservation.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;

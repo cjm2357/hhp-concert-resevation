@@ -1,7 +1,7 @@
 package com.example.concert_reservation.repository.reservation;
 
 import com.example.concert_reservation.domain.entity.Reservation;
-import com.example.concert_reservation.domain.service.reservation.ReservationRepository;
+import com.example.concert_reservation.domain.reservation.ReservationRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

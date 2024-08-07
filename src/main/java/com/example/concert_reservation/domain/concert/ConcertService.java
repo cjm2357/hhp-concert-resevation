@@ -1,6 +1,5 @@
-package com.example.concert_reservation.domain.service.concert;
+package com.example.concert_reservation.domain.concert;
 
-import com.example.concert_reservation.domain.service.concert.ConcertRepository;
 import com.example.concert_reservation.domain.entity.Concert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
