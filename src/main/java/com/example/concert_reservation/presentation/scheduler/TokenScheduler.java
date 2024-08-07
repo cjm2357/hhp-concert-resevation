@@ -1,14 +1,10 @@
 package com.example.concert_reservation.presentation.scheduler;
 
-import com.example.concert_reservation.application.TokenFacade;
-import com.example.concert_reservation.domain.entity.Point;
+import com.example.concert_reservation.application.token.TokenFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.redisson.client.RedisClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 

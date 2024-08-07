@@ -1,6 +1,6 @@
 package com.example.concert_reservation.presentation.interceptor;
 
-import com.example.concert_reservation.application.TokenFacade;
+import com.example.concert_reservation.application.token.TokenFacade;
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Token;

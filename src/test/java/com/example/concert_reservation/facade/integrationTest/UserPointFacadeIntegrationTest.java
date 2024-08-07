@@ -1,12 +1,11 @@
 package com.example.concert_reservation.facade.integrationTest;
 
-import com.example.concert_reservation.application.UserPointFacade;
+import com.example.concert_reservation.application.user.UserPointFacade;
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
-import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
-import com.example.concert_reservation.domain.service.repository.PointRepository;
-import com.example.concert_reservation.domain.service.repository.UserRepository;
+import com.example.concert_reservation.domain.service.point.PointRepository;
+import com.example.concert_reservation.domain.service.user.UserRepository;
 import com.example.concert_reservation.fixture.UserFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;

@@ -1,16 +1,16 @@
 package com.example.concert_reservation.contorller.unitTest;
 
 
-import com.example.concert_reservation.application.ConcertFacade;
+import com.example.concert_reservation.application.concert.ConcertFacade;
 import com.example.concert_reservation.domain.entity.*;
-import com.example.concert_reservation.domain.service.ConcertService;
+import com.example.concert_reservation.domain.service.concert.ConcertService;
 import com.example.concert_reservation.dto.PaymentRequestDto;
 import com.example.concert_reservation.dto.SeatReservationRequestDto;
 import com.example.concert_reservation.fixture.ConcertFixture;
 import com.example.concert_reservation.fixture.PaymentFixture;
 import com.example.concert_reservation.fixture.ScheduleFixture;
 import com.example.concert_reservation.fixture.SeatFixture;
-import com.example.concert_reservation.presentation.controller.ConcertController;
+import com.example.concert_reservation.presentation.controller.concert.ConcertController;
 import com.example.concert_reservation.presentation.interceptor.TokenInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
