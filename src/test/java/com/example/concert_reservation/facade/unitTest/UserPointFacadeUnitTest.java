@@ -1,11 +1,11 @@
 package com.example.concert_reservation.facade.unitTest;
 
-import com.example.concert_reservation.application.UserPointFacade;
+import com.example.concert_reservation.application.user.UserPointFacade;
 import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.domain.service.PointService;
-import com.example.concert_reservation.domain.service.UserService;
+import com.example.concert_reservation.domain.service.point.PointService;
+import com.example.concert_reservation.domain.service.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

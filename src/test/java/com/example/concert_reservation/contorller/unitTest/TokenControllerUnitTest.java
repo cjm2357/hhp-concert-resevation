@@ -1,7 +1,7 @@
 package com.example.concert_reservation.contorller.unitTest;
 
-import com.example.concert_reservation.application.TokenFacade;
-import com.example.concert_reservation.presentation.controller.TokenController;
+import com.example.concert_reservation.application.token.TokenFacade;
+import com.example.concert_reservation.presentation.controller.token.TokenController;
 import com.example.concert_reservation.dto.TokenRequestDto;
 import com.example.concert_reservation.domain.entity.Token;
 import com.example.concert_reservation.domain.entity.User;

@@ -1,6 +1,6 @@
 package com.example.concert_reservation.intercepter.unitTest;
 
-import com.example.concert_reservation.application.TokenFacade;
+import com.example.concert_reservation.application.token.TokenFacade;
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Token;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

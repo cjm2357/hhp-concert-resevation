@@ -1,7 +1,7 @@
 package com.example.concert_reservation.contorller.unitTest;
 
-import com.example.concert_reservation.application.UserPointFacade;
-import com.example.concert_reservation.presentation.controller.UserPointController;
+import com.example.concert_reservation.application.user.UserPointFacade;
+import com.example.concert_reservation.presentation.controller.user.UserPointController;
 import com.example.concert_reservation.dto.UserPointRequestDto;
 import com.example.concert_reservation.dto.UserPointResponseDto;
 import com.example.concert_reservation.domain.entity.Point;

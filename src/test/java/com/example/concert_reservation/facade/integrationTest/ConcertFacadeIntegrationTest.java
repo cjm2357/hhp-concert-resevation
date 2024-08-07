@@ -1,13 +1,20 @@
 package com.example.concert_reservation.facade.integrationTest;
 
-import com.example.concert_reservation.application.ConcertFacade;
+import com.example.concert_reservation.application.concert.ConcertFacade;
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
-import com.example.concert_reservation.domain.service.repository.*;
+import com.example.concert_reservation.domain.service.concert.ConcertRepository;
+import com.example.concert_reservation.domain.service.payment.PaymentRepository;
+import com.example.concert_reservation.domain.service.point.PointRepository;
+import com.example.concert_reservation.domain.service.reservation.ReservationRepository;
+import com.example.concert_reservation.domain.service.schedule.ScheduleRepository;
+import com.example.concert_reservation.domain.service.seat.SeatRepository;
+import com.example.concert_reservation.domain.service.token.TokenRepository;
+import com.example.concert_reservation.domain.service.user.UserRepository;
 import com.example.concert_reservation.fixture.*;
-import com.example.concert_reservation.repository.ConcertCacheRepository;
-import com.example.concert_reservation.repository.ScheduleCacheRepository;
+import com.example.concert_reservation.repository.concert.ConcertCacheRepository;
+import com.example.concert_reservation.repository.schedule.ScheduleCacheRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -15,8 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
