@@ -14,6 +14,10 @@ import java.time.LocalDateTime;
 @Setter
 public class Payment {
 
+    public static String SUCCESS_MSG = "succeeded payment";
+    public static String FAIL_MSG = "failed payment";
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
