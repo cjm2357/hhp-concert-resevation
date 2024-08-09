@@ -47,6 +47,19 @@ public class SeatService {
         return seat;
     }
 
+
+//    @Transactional
+    public Seat updateSeatStateForPayment(Integer seatId, Seat.State state) {
+        Seat seat = seatRepository.findById(seatId);
+        if (seat == null) {
+            log.warn("not found seat of {}", seatId);
+            throw new CustomException(CustomExceptionCode.SEAT_NOT_FOUND);
+        }
+        seat.setState(state);
+        seat = seatRepository.save(seat);
+        return seat;
+    }
+
     public void saveAllSeatState( List<Integer> seatIdList, Seat.State state) {
         seatRepository.saveAllStateBySeatId(seatIdList, state);
     }

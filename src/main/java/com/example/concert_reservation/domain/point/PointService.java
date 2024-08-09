@@ -7,6 +7,7 @@ import com.example.concert_reservation.domain.entity.Point;
 import com.example.concert_reservation.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service

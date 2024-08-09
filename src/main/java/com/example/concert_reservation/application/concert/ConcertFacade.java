@@ -4,7 +4,9 @@ import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.concert.ConcertService;
+import com.example.concert_reservation.domain.payment.PaymentEventPublisher;
 import com.example.concert_reservation.domain.payment.PaymentService;
+import com.example.concert_reservation.domain.payment.PaymentSuccessEvent;
 import com.example.concert_reservation.domain.point.PointService;
 import com.example.concert_reservation.domain.reservation.ReservationService;
 import com.example.concert_reservation.domain.schedule.ScheduleService;
@@ -33,6 +35,7 @@ public class ConcertFacade {
     private final ReservationService reservationService;
     private final PaymentService paymentService;
     private final TokenService tokenService;
+    private final PaymentEventPublisher paymentEventPublisher;
 
 
     public List<Concert> getConcertList() {
@@ -72,6 +75,7 @@ public class ConcertFacade {
         return reservation;
     }
 
+    @Transactional
     public Payment pay(Payment payment, UUID tokenKey) {
         Reservation reservation = reservationService.getReservation(payment.getReservationId());
         reservation.isNotExpired();
@@ -81,15 +85,20 @@ public class ConcertFacade {
         user.isReservationUser(reservation.getUserId());
         //지불 가능한지 확인
         user.isPayable(reservation.getPrice());
+        
+        //결제
         payment = paymentService.pay(payment);
 
-        //포인트 차감
-        pointService.payPoint(user, reservation.getPrice());
+        //결제 실패시 Exception을 날리기 때문에 fail event handler는 만들지 않음
+        paymentEventPublisher.success(new PaymentSuccessEvent(user, reservation, tokenKey));
 
-        reservation.setState(Reservation.State.COMPLETED);
-        seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
-        reservationService.changeReservationInfo(reservation);
-        tokenService.expireToken(tokenKey);
+        //포인트 차감
+//        pointService.payPoint(user, reservation.getPrice());
+
+//        reservation.setState(Reservation.State.COMPLETED);
+//        seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
+//        reservationService.changeReservationInfo(reservation);
+//        tokenService.expireToken(tokenKey);
 
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
