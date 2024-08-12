@@ -23,7 +23,7 @@ public class TokenScheduler {
     private final int activateCount = 50;
 
     //10초마다 작동
-    @Scheduled(cron = "*/10 * * * * *")
+//    @Scheduled(cron = "*/10 * * * * *")
     public void changeActiveStatus() {
 
         log.info("start activate token scheduler");

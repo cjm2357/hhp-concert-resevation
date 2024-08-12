@@ -5,6 +5,7 @@ import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Reservation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +29,7 @@ public class ReservationService {
         return reservation;
     }
 
+    @Transactional
     public Reservation changeReservationInfo(Reservation reservation) {
         return reservationRepository.save(reservation);
     }

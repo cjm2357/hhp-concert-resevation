@@ -284,7 +284,7 @@ public class ConcertFacadeIntegrationTest {
     }
 
     @Test
-    void 결제_성공() {
+    void 결제_성공() throws Exception{
         //given
         Integer userId = 1;
         User user = userRepository.findById(userId);

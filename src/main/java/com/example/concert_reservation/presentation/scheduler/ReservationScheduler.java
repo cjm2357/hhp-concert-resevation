@@ -23,7 +23,7 @@ public class ReservationScheduler {
     private final String reservationScheduleLockKey = "reservationScheduleLockKey";
 
     //10초마다 작동
-    @Scheduled(cron = "*/10 * * * * *")
+//    @Scheduled(cron = "*/10 * * * * *")
     public void expireReservation() {
 
         // 분산환경에서 스케줄 중복실행방지를 위해 분산 락 사용

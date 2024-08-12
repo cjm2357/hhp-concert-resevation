@@ -48,7 +48,7 @@ public class SeatService {
     }
 
 
-//    @Transactional
+    @Transactional
     public Seat updateSeatStateForPayment(Integer seatId, Seat.State state) {
         Seat seat = seatRepository.findById(seatId);
         if (seat == null) {
