@@ -15,6 +15,7 @@ public enum CustomExceptionCode {
     RESERVATION_FAILED(500, "RESERVATION_FAILED", "예약이 실패하였습니다."),
     PAYMENT_TIME_EXPIRE(403, "PAYMENT_TIME_EXPIRE", "결제 시간이 만료되었습니다."),
     PAYMENT_DIFFERENT_USER(403, "PAYMENT_DIFFERENT_USER", "예약한 유저가 아닙니다."),
+    PAYMENT_IS_FAILED(500, "PAYMENT_IS_FAILED", "결제 실패 하였습니다."),
     POINT_NOT_ENOUGH(403, "POINT_NOT_ENOUGH", "유저의 포인트가 결제금액보다 적습니다."),
     USER_POINT_NOT_FOUND(404, "USER_POINT_NOT_FOUND", "유저의 포인트 정보가 없습니다."),
     SEAT_NOT_FOUND(404, "SEAT_NOT_FOUND", "좌석 정보가 없습니다."),
