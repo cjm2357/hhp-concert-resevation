@@ -1,4 +1,4 @@
-package com.example.concert_reservation.repository.dataPlatform;
+package com.example.concert_reservation.infra.dataPlatform;
 
 import com.example.concert_reservation.domain.common.DataPlatform;
 import com.example.concert_reservation.domain.entity.Reservation;

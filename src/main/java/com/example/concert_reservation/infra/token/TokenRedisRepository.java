@@ -1,16 +1,13 @@
-package com.example.concert_reservation.repository.token;
+package com.example.concert_reservation.infra.token;
 
 import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.Token;
-import com.example.concert_reservation.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;

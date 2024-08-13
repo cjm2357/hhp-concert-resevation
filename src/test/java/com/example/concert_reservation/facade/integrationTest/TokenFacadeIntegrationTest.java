@@ -10,7 +10,7 @@ import com.example.concert_reservation.domain.token.TokenRepository;
 import com.example.concert_reservation.domain.user.UserRepository;
 import com.example.concert_reservation.fixture.TokenFixture;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.repository.token.TokenRedisRepository;
+import com.example.concert_reservation.infra.token.TokenRedisRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

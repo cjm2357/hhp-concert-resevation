@@ -1,4 +1,4 @@
-package com.example.concert_reservation.repository.point;
+package com.example.concert_reservation.infra.point;
 
 import com.example.concert_reservation.domain.entity.Point;
 import jakarta.persistence.LockModeType;

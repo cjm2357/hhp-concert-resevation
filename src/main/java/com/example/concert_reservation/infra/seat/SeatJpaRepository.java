@@ -1,4 +1,4 @@
-package com.example.concert_reservation.repository.seat;
+package com.example.concert_reservation.infra.seat;
 
 import com.example.concert_reservation.domain.entity.Seat;
 import org.springframework.data.jpa.repository.JpaRepository;
