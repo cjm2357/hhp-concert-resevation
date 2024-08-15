@@ -6,4 +6,6 @@ public interface PaymentRepository {
 
     Payment save(Payment payment);
 
+    void deleteById(Integer paymentId);
+
 }
