@@ -13,9 +13,9 @@ public class DataPlatformImpl implements DataPlatform {
     public void sendMessage(String text, Reservation reservation) {
         try {
             Thread.sleep(1000);
+            log.info("concert : {}, schedule : {}, seat : {} is {}.", reservation.getConcertId(),reservation.getScheduleId(), reservation.getSeatId(), text);
         } catch (Exception e) {
             log.error("fail send Message");
         }
-        log.info("concert : {}, schedule : {}, seat : {} is {}.", reservation.getConcertId(),reservation.getScheduleId(), reservation.getSeatId(), text);
     }
 }
