@@ -4,9 +4,9 @@ import com.example.concert_reservation.config.exception.CustomException;
 import com.example.concert_reservation.config.exception.CustomExceptionCode;
 import com.example.concert_reservation.domain.entity.*;
 import com.example.concert_reservation.domain.concert.ConcertService;
-import com.example.concert_reservation.domain.payment.PaymentEventPublisher;
+import com.example.concert_reservation.domain.payment.event.PaymentEventPublisher;
 import com.example.concert_reservation.domain.payment.PaymentService;
-import com.example.concert_reservation.domain.payment.PaymentSuccessEvent;
+import com.example.concert_reservation.domain.payment.event.PaymentEvent;
 import com.example.concert_reservation.domain.point.PointService;
 import com.example.concert_reservation.domain.reservation.ReservationService;
 import com.example.concert_reservation.domain.schedule.ScheduleService;
@@ -89,16 +89,7 @@ public class ConcertFacade {
         //결제
         payment = paymentService.pay(payment);
 
-        //결제 실패시 Exception을 날리기 때문에 fail event handler는 만들지 않음
-        paymentEventPublisher.success(new PaymentSuccessEvent(user, reservation, tokenKey));
-
-        //포인트 차감
-//        pointService.payPoint(user, reservation.getPrice());
-
-//        reservation.setState(Reservation.State.COMPLETED);
-//        seatService.updateSeatState(reservation.getSeatId(), Seat.State.RESERVED);
-//        reservationService.changeReservationInfo(reservation);
-//        tokenService.expireToken(tokenKey);
+        paymentEventPublisher.success(new PaymentEvent(payment,reservation, tokenKey));
 
         log.info("{} user success to pay {} reservation", user.getId(), reservation.getId());
         return payment;
@@ -115,6 +106,25 @@ public class ConcertFacade {
         });
 
         seatService.saveAllSeatState(seatIdList, Seat.State.EMPTY);
+    }
+
+    @Transactional
+    public void updateSeatReservationState(Integer reservationId) {
+        Reservation reservation = reservationService.getReservation(reservationId);
+        reservation.isNotExpired();
+        reservation.setState(Reservation.State.COMPLETED);
+        seatService.updateSeatStateForPayment(reservation.getSeatId(), Seat.State.RESERVED);
+        log.info("{} user success to change {} seat state", reservation.getUserId(), reservation.getSeatId());
+        reservationService.changeReservationInfo(reservation);
+        log.info("{} user success to change {} reservation state", reservation.getUserId(), reservation.getId());
+    }
+
+    public Reservation getReservation(Integer reservationId){
+        return reservationService.getReservation(reservationId);
+    }
+
+    public void deletePayment(Integer paymentId) {
+        paymentService.deletePayment(paymentId);
     }
 
 
