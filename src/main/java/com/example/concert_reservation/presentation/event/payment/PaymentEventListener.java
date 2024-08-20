@@ -24,7 +24,6 @@ public class PaymentEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void createOutBoxMessage(PaymentEvent event) {
-
         try {
             PaymentMessage paymentMessage = new PaymentMessage(event);
             String json =objectMapper.writeValueAsString(event);

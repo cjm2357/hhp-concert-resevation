@@ -1,23 +1,29 @@
 package com.example.concert_reservation.domain.payment.message;
 
 import com.example.concert_reservation.domain.payment.event.PaymentEvent;
-import com.example.concert_reservation.infra.payment.message.PaymentState;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import lombok.Data;
+import jakarta.persistence.Id;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-@Data
+@Entity
+@Getter
+@Setter
+@Slf4j
 public class PaymentMessage {
 
+    @Id
     private Integer paymentId;
     private String message;
 
@@ -31,7 +37,9 @@ public class PaymentMessage {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime updatedAt;
 
-
+    public enum PaymentState {
+        INIT, PUBLISHED
+    }
     public PaymentMessage() {};
 
     public PaymentMessage(String message) {
@@ -52,8 +60,13 @@ public class PaymentMessage {
         this.updatedAt = LocalDateTime.now();
     }
 
-
-
-
+    @Builder
+    public PaymentMessage(PaymentMessage paymentMessage, PaymentState state) {
+        this.paymentId = paymentMessage.getPaymentId();
+        this.message = paymentMessage.getMessage();
+        this.state = state;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
 }

@@ -6,6 +6,7 @@ import com.example.concert_reservation.domain.entity.Seat;
 import com.example.concert_reservation.domain.entity.User;
 import com.example.concert_reservation.domain.payment.PaymentRepository;
 import com.example.concert_reservation.domain.payment.event.PaymentEvent;
+import com.example.concert_reservation.domain.payment.message.PaymentMessage;
 import com.example.concert_reservation.domain.point.PointRepository;
 import com.example.concert_reservation.domain.reservation.ReservationRepository;
 import com.example.concert_reservation.domain.seat.SeatRepository;
@@ -14,9 +15,7 @@ import com.example.concert_reservation.fixture.PaymentFixture;
 import com.example.concert_reservation.fixture.ReservationFixture;
 import com.example.concert_reservation.fixture.SeatFixture;
 import com.example.concert_reservation.fixture.UserFixture;
-import com.example.concert_reservation.infra.payment.message.PaymentOutboxEntity;
 import com.example.concert_reservation.infra.payment.message.PaymentOutboxWriterImpl;
-import com.example.concert_reservation.infra.payment.message.PaymentState;
 import com.example.concert_reservation.presentation.event.payment.PaymentEventListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,12 +85,12 @@ public class KafkaOutboxTest {
         Thread.sleep(3000);
 
         //then
-        PaymentOutboxEntity paymentOutbox= paymentOutboxWriter.findByPaymentId(payment.getId());
+        PaymentMessage paymentMessage= paymentOutboxWriter.findByPaymentId(payment.getId());
 
 
         //INIT, POINT, SEAT, FINISHED 순으로 발행됨
         //메세지가 발행되서 문제없이 진행됬다면 FINISHED에서 끝남
-        assertEquals(PaymentState.FINISHED, paymentOutbox.getState());
+        assertEquals(PaymentMessage.PaymentState.PUBLISHED, paymentMessage.getState());
 
 
     }

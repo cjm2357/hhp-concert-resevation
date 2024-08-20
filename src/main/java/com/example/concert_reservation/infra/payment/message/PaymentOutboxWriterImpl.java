@@ -16,35 +16,22 @@ public class PaymentOutboxWriterImpl implements PaymentMessageOutboxWriter {
 
     @Override
     public PaymentMessage create(PaymentMessage paymentMessage) {
-        PaymentOutboxEntity paymentOutboxEntity = PaymentOutboxEntity.builder()
-                .paymentMessage(paymentMessage)
-                .state(PaymentState.INIT)
-                .build();
-
-       return paymentJpaOutboxWriter.save(paymentOutboxEntity).toDomain();
+        paymentMessage.setState(PaymentMessage.PaymentState.INIT);
+       return paymentJpaOutboxWriter.save(paymentMessage);
     }
 
     @Override
     public PaymentMessage update(PaymentMessage paymentMessage) {
-        PaymentOutboxEntity paymentOutboxEntity = PaymentOutboxEntity.builder()
-                .paymentMessage(paymentMessage)
-                .state(paymentMessage.getState())
-                .build();
-
-        return paymentJpaOutboxWriter.save(paymentOutboxEntity).toDomain();
+        return paymentJpaOutboxWriter.save(paymentMessage);
     }
 
-    public PaymentOutboxEntity findByPaymentId(Integer paymentId) {
+    public PaymentMessage findByPaymentId(Integer paymentId) {
         return paymentJpaOutboxWriter.findById(paymentId).get();
     }
 
     @Override
-    public List<PaymentMessage> findAllByState(PaymentState state) {
-        List<PaymentMessage> paymentMessages = new ArrayList<>();
-        paymentJpaOutboxWriter.findAllByState(state).stream().forEach(entity->{
-            paymentMessages.add(entity.toDomain());
-        });
-        return paymentMessages;
+    public List<PaymentMessage> findAllByState(PaymentMessage.PaymentState state) {
+        return paymentJpaOutboxWriter.findAllByState(state);
     }
 
 }

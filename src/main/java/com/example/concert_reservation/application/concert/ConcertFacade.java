@@ -85,6 +85,8 @@ public class ConcertFacade {
         user.isReservationUser(reservation.getUserId());
         //지불 가능한지 확인
         user.isPayable(reservation.getPrice());
+        //포인트 차감
+        pointService.payPoint(user, reservation.getPrice());
         
         //결제
         payment = paymentService.pay(payment);
