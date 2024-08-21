@@ -303,6 +303,7 @@ public class ConcertFacadeIntegrationTest {
         payment = concertFacade.pay(payment, token.getTokenKey());
 
         //then
+        Thread.sleep(3000);
         user = userRepository.findById(userId);
         reservation = reservationRepository.findById(reservation.getId());
         assertNotNull(payment.getId());

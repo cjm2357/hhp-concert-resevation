@@ -1,8 +1,9 @@
-package com.example.concert_reservation.infra.payment;
+package com.example.concert_reservation.infra.payment.kafka;
 
 
 import com.example.concert_reservation.domain.entity.Payment;
 import com.example.concert_reservation.domain.payment.PaymentRepository;
+import com.example.concert_reservation.infra.payment.PaymentJpaRepository;
 import org.springframework.stereotype.Repository;
 
 
@@ -17,6 +18,10 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     public Payment save(Payment payment){
         return paymentJpaRepository.save(payment);
+    }
+
+    public void deleteById(Integer paymentId) {
+        paymentJpaRepository.deleteById(paymentId);
     }
 
 }

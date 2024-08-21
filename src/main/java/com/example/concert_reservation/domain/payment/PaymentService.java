@@ -16,8 +16,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-
-
     public Payment pay(Payment payment) {
         payment.setCreatedTime(LocalDateTime.now());
         try {
@@ -26,6 +24,10 @@ public class PaymentService {
             log.warn("user {} reservation {} payment is failed", payment.getUserId(), payment.getReservationId());
             throw new CustomException(CustomExceptionCode.PAYMENT_IS_FAILED);
         }
+    }
+
+    public void deletePayment(Integer paymentId) {
+        paymentRepository.deleteById(paymentId);
     }
 
 
