@@ -45,7 +45,7 @@ public class ConcertController {
     }
 
     // 예약가능 Seat 조회 API
-    @GetMapping("schedules/{scheduleId}/seats")
+    @GetMapping("/schedules/{scheduleId}/seats")
     public ResponseEntity<?> readSeat(
             @PathVariable("scheduleId") Integer scheduleId
     ) {

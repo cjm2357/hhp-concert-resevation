@@ -25,13 +25,19 @@ public class TokenController {
 
     // 토큰 발급 API
     @PostMapping("/token")
-    public ResponseEntity<?> createToken(@RequestBody TokenRequestDto dto) {
+    public ResponseEntity<?> createToken(@RequestHeader(value = "Authorization", required = false) UUID key, @RequestBody TokenRequestDto dto) {
         if (dto.getUserId() == null)  {
             log.warn("no user id");
             throw new CustomException(CustomExceptionCode.USER_CAN_NOT_BE_NULL);
         }
+        Token token = null;
+        if (key != null) {
+            // 토큰을 가진 상태에서 재요청에대한 처리
+            token = tokenFacade.getTokenStatus(key);
+        } else {
+            token = tokenFacade.createToken(dto.getUserId());
+        }
 
-        Token token = tokenFacade.createToken(dto.getUserId());
         TokenResponseDto responseDto = new TokenResponseDto(token);
         return ResponseEntity.ok(responseDto);
 

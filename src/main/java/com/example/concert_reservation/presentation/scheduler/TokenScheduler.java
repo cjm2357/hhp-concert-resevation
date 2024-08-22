@@ -18,7 +18,8 @@ public class TokenScheduler {
     private final int activateCount = 50;
 
     //10분마다 작동
-    @Scheduled(fixedRate = 10 * 60 * 1000)
+//    @Scheduled(fixedRate = 10 * 60 * 1000)
+    @Scheduled(fixedRate = 10 * 1000)
     public void changeActiveStatus() {
         log.info("start activate token scheduler");
         tokenFacade.activateTokens(activateCount);
