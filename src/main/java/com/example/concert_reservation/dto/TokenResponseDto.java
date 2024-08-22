@@ -12,12 +12,12 @@ import java.util.UUID;
 @NoArgsConstructor
 public class TokenResponseDto {
 
-    private Integer userId;
+//    private Integer userId;
     private UUID key;
     private Integer order;
 
     public TokenResponseDto (Token token) {
-        this.userId = token.getUser().getId();
+//        this.userId = token.getUser().getId();
         this.key = token.getTokenKey();
         this.order = token.getOrder();
     }
